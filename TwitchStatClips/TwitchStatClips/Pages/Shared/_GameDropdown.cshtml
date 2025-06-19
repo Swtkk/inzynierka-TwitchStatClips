@@ -1,0 +1,57 @@
+﻿
+@using TwitchStatClips.TwitchService
+@inject TwitchTokenService TokenService
+@{
+    var games = await TokenService.GetTopGamesAsync();
+    var selectedGameName = Context.Request.Query["gameName"].ToString(); // 👈 TO DODAJ
+    var selectedPeriod = Context.Request.Query["period"].ToString();
+    var selectedLang = Context.Request.Query["language"].ToString();
+
+    if (string.IsNullOrEmpty(selectedPeriod))
+        selectedPeriod = "week";
+}
+
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="gameDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Gry
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="gameDropdown">
+        @foreach (var game in games)
+        {
+            <li>
+                <a class="dropdown-item"
+                   asp-page="/Index"
+                   asp-route-gameName="@game.Name"
+                   asp-route-period="@selectedPeriod"
+                   asp-route-language="@selectedLang">
+                    @game.Name
+                </a>
+            </li>
+        }
+
+    </ul>
+</li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="periodDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Okres
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="periodDropdown">
+        <li><a class="dropdown-item" asp-page="/Index" asp-route-gameName="@selectedGameName" asp-route-period="day" asp-route-language="@selectedLang">24 godziny</a></li>
+        <li><a class="dropdown-item" asp-page="/Index" asp-route-gameName="@selectedGameName" asp-route-period="week" asp-route-language="@selectedLang">7 dni</a></li>
+        <li><a class="dropdown-item" asp-page="/Index" asp-route-gameName="@selectedGameName" asp-route-period="month" asp-route-language="@selectedLang">30 dni</a></li>
+        <li><a class="dropdown-item" asp-page="/Index" asp-route-gameName="@selectedGameName" asp-route-period="all" asp-route-language="@selectedLang">Ogólne</a></li>
+
+    </ul>
+</li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Język
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="langDropdown">
+        <li><a class="dropdown-item" asp-page="/Index" asp-route-gameId="@selectedGameName" asp-route-period="@selectedPeriod">Wszystkie</a></li>
+        
+    </ul>
+</li>

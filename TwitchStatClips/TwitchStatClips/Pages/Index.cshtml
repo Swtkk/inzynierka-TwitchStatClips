@@ -1,0 +1,37 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Twitch Clips";
+}
+
+<h1>Twitch Clips</h1>
+<h2>Klipy z gry @Model.SelectedGame</h2>
+
+
+@if (Model.Clips.Count == 0)
+{
+    <p>Brak klipów do wyświetlenia.</p>
+
+}
+else
+{
+    <div class="row">
+        @foreach (var clip in Model.Clips)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <iframe class="card-img-top"
+                            src="@($"{clip.EmbedUrl}&parent=localhost")"
+                            height="300"
+                            allowfullscreen
+                            frameborder="0">
+                    </iframe>
+                    <div class="card-body">
+                        <h5 class="card-title">@clip.Title</h5>
+                        <p class="card-text">Autor: @clip.BroadcasterName</p> 
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
