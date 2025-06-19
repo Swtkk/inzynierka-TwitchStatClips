@@ -4,9 +4,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddRazorPages();
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<TwitchTokenService>();
 builder.Services.AddHostedService<TwitchTokenRefreshService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

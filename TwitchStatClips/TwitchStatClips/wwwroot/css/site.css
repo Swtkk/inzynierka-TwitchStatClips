@@ -20,3 +20,10 @@ html {
 body {
   margin-bottom: 60px;
 }
+.clip-thumbnail {
+    transition: transform 0.2s ease;
+}
+
+    .clip-thumbnail:hover {
+        transform: scale(1.03);
+    }

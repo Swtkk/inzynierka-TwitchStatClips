@@ -7,11 +7,9 @@
 <h1>Twitch Clips</h1>
 <h2>Klipy z gry @Model.SelectedGame</h2>
 
-
 @if (Model.Clips.Count == 0)
 {
     <p>Brak klipów do wyświetlenia.</p>
-
 }
 else
 {
@@ -20,15 +18,12 @@ else
         {
             <div class="col-md-6 mb-4">
                 <div class="card">
-                    <iframe class="card-img-top"
-                            src="@($"{clip.EmbedUrl}&parent=localhost")"
-                            height="300"
-                            allowfullscreen
-                            frameborder="0">
-                    </iframe>
+                    <div id="clip-@clip.Id" class="clip-container" style="cursor:pointer;" onclick="loadClip('@clip.Id')">
+                        <img src="@clip.ThumbnailUrl" alt="@clip.Title" class="card-img-top clip-thumbnail" style="width:100%; height:auto;" />
+                    </div>
                     <div class="card-body">
                         <h5 class="card-title">@clip.Title</h5>
-                        <p class="card-text">Autor: @clip.BroadcasterName</p> 
+                        <p class="card-text">Autor: @clip.BroadcasterName</p>
                     </div>
                 </div>
             </div>

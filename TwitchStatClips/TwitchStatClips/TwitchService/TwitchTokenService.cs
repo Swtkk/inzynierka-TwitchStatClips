@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System.Text.Json;
 
 namespace TwitchStatClips.TwitchService
 {
@@ -7,13 +8,23 @@ namespace TwitchStatClips.TwitchService
         private readonly IConfiguration _config;
         private TwitchAuthToken? _currentToken;
         private readonly object _lock = new();
+        private readonly IMemoryCache _cache;
 
-        public TwitchTokenService(IConfiguration config)
+        public TwitchTokenService(IConfiguration config, IMemoryCache cache)
         {
             _config = config;
+            _cache = cache;
         }
 
-        public TwitchAuthToken? GetToken() => _currentToken;
+        public TwitchAuthToken? GetToken()
+        {
+            if (_cache.TryGetValue("twitch_token", out TwitchAuthToken token))
+            {
+                return token;
+            }
+
+            return null;
+        }
 
         public bool IsTokenAvailable() => _currentToken != null && !_currentToken.IsExpired;
 
@@ -24,13 +35,13 @@ namespace TwitchStatClips.TwitchService
             var redirectUri = _config["Twitch:RedirectUri"];
 
             var body = new Dictionary<string, string>
-        {
-            { "client_id", clientId },
-            { "client_secret", clientSecret },
-            { "code", code },
-            { "grant_type", "authorization_code" },
-            { "redirect_uri", redirectUri }
-        };
+            {
+                { "client_id", clientId },
+                { "client_secret", clientSecret },
+                { "code", code },
+                { "grant_type", "authorization_code" },
+                { "redirect_uri", redirectUri }
+            };
 
             using var client = new HttpClient();
             var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", new FormUrlEncodedContent(body));
@@ -52,11 +63,17 @@ namespace TwitchStatClips.TwitchService
                 _currentToken = token;
             }
 
+            _cache.Set("twitch_token", token, token.ExpiresAt - DateTime.UtcNow);
             return token;
         }
 
         public async Task RefreshTokenAsync()
         {
+            var token = GetToken();
+            if (token == null) return;
+
+            _cache.Set("twitch_token", token, token.ExpiresAt - DateTime.UtcNow);
+
             if (_currentToken == null || string.IsNullOrEmpty(_currentToken.RefreshToken))
                 return;
 
@@ -64,12 +81,12 @@ namespace TwitchStatClips.TwitchService
             var clientSecret = _config["Twitch:ClientSecret"];
 
             var body = new Dictionary<string, string>
-        {
-            { "grant_type", "refresh_token" },
-            { "refresh_token", _currentToken.RefreshToken },
-            { "client_id", clientId },
-            { "client_secret", clientSecret }
-        };
+            {
+                { "grant_type", "refresh_token" },
+                { "refresh_token", _currentToken.RefreshToken },
+                { "client_id", clientId },
+                { "client_secret", clientSecret }
+            };
 
             using var client = new HttpClient();
             var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", new FormUrlEncodedContent(body));
@@ -88,7 +105,10 @@ namespace TwitchStatClips.TwitchService
                     TokenType = doc.RootElement.GetProperty("token_type").GetString()!
                 };
             }
+
+            _cache.Set("twitch_token", _currentToken, _currentToken.ExpiresAt - DateTime.UtcNow);
         }
+
         public async Task<string?> GetUserIdAsync()
         {
             var token = GetToken();
@@ -140,11 +160,6 @@ namespace TwitchStatClips.TwitchService
             return clips;
         }
 
-
-
-
-
-
         public async Task<List<(string Id, string Name)>> GetTopGamesAsync()
         {
             var token = GetToken();
@@ -172,7 +187,6 @@ namespace TwitchStatClips.TwitchService
             return result;
         }
 
-
         public async Task<string?> GetGameIdByNameAsync(string gameName)
         {
             var token = GetToken();
@@ -195,10 +209,16 @@ namespace TwitchStatClips.TwitchService
             return data[0].GetProperty("id").GetString();
         }
 
-
-
         public async Task<List<TwitchClip>> GetClipsByGameAsync(string gameId, string? period = null)
         {
+            string cacheKey = $"clips_{gameId}_{period}";
+
+            if (_cache.TryGetValue(cacheKey, out List<TwitchClip> cachedClips))
+            {
+                Console.WriteLine($"🔁 Loaded from CACHE for key: {cacheKey}");
+                return cachedClips;
+            }
+
             var token = GetToken();
             if (token == null) return new();
 
@@ -208,7 +228,6 @@ namespace TwitchStatClips.TwitchService
 
             var baseUrl = $"https://api.twitch.tv/helix/clips?game_id={gameId}&first=20";
 
-            // Oblicz czas rozpoczęcia na podstawie period
             if (!string.IsNullOrEmpty(period) && period != "all")
             {
                 var now = DateTime.UtcNow;
@@ -243,9 +262,11 @@ namespace TwitchStatClips.TwitchService
                 });
             }
 
+            _cache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
+            Console.WriteLine($"🌐 Loaded from API for key: {cacheKey}");
+
             return result;
         }
 
     }
-
 }

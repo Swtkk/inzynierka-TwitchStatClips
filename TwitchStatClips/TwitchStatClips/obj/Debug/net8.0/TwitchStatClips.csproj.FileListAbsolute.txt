@@ -31,3 +31,4 @@ C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\obj\Debug\net8.0\ref
 C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\obj\Debug\net8.0\TwitchStatClips.pdb
 C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\obj\Debug\net8.0\TwitchStatClips.genruntimeconfig.cache
 C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\obj\Debug\net8.0\ref\TwitchStatClips.dll
+C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\obj\Debug\net8.0\TwitchStatClips.sourcelink.json
