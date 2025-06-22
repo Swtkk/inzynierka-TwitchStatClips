@@ -9,7 +9,11 @@ builder.Services.AddSingleton<TwitchTokenService>();
 builder.Services.AddHostedService<TwitchTokenRefreshService>();
 builder.Services.AddControllers();
 builder.Services.AddHttpClient<TwitchClipService>();
-
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AddPageRoute("/Auth/Login", "auth/twitch/login");
+    options.Conventions.AddPageRoute("/Auth/Logout", "auth/twitch/logout");
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

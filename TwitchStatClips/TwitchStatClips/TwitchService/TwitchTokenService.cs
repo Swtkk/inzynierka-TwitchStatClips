@@ -15,18 +15,98 @@ namespace TwitchStatClips.TwitchService
             _config = config;
             _cache = cache;
         }
+        public async Task<(string? Name, string? AvatarUrl)> GetUserInfoAsync()
+        {
+            var token = GetToken();
+            if (token == null) return (null, null);
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            client.DefaultRequestHeaders.Add("Client-Id", _config["Twitch:ClientId"]);
+
+            var response = await client.GetAsync("https://api.twitch.tv/helix/users");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+            var user = doc.RootElement.GetProperty("data")[0];
+
+            return (
+                user.GetProperty("display_name").GetString(),
+                user.GetProperty("profile_image_url").GetString()
+            );
+        }
 
         public TwitchAuthToken? GetToken()
         {
+            // Zawsze próbuj najpierw z cache
             if (_cache.TryGetValue("twitch_token", out TwitchAuthToken token))
             {
+                _currentToken = token;
                 return token;
             }
 
             return null;
         }
+        public async Task<string?> GetUserNameAsync()
+        {
+            var token = GetToken();
+            if (token == null) return null;
 
-        public bool IsTokenAvailable() => _currentToken != null && !_currentToken.IsExpired;
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            client.DefaultRequestHeaders.Add("Client-Id", _config["Twitch:ClientId"]);
+
+            var response = await client.GetAsync("https://api.twitch.tv/helix/users");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+
+            return doc.RootElement.GetProperty("data")[0].GetProperty("display_name").GetString();
+        }
+
+
+        public bool IsTokenAvailable()
+        {
+            var token = GetToken();
+            return token != null && !token.IsExpired;
+        }
+
+        public async Task RequestAppTokenAsync()
+        {
+            var clientId = _config["Twitch:ClientId"];
+            var clientSecret = _config["Twitch:ClientSecret"];
+
+            var body = new Dictionary<string, string>
+    {
+        { "client_id", clientId },
+        { "client_secret", clientSecret },
+        { "grant_type", "client_credentials" }
+    };
+
+            using var client = new HttpClient();
+            var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", new FormUrlEncodedContent(body));
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+
+            var token = new TwitchAuthToken
+            {
+                AccessToken = doc.RootElement.GetProperty("access_token").GetString()!,
+                RefreshToken = "", // brak przy client_credentials
+                ExpiresAt = DateTime.UtcNow.AddSeconds(doc.RootElement.GetProperty("expires_in").GetInt32()),
+                TokenType = doc.RootElement.GetProperty("token_type").GetString()!
+            };
+
+            lock (_lock)
+            {
+                _currentToken = token;
+            }
+
+            _cache.Set("twitch_token", token, token.ExpiresAt - DateTime.UtcNow);
+        }
 
         public async Task<TwitchAuthToken> ExchangeCodeForTokenAsync(string code)
         {
@@ -207,6 +287,14 @@ namespace TwitchStatClips.TwitchService
                 return null;
 
             return data[0].GetProperty("id").GetString();
+        }
+        public void ClearToken()
+        {
+            _cache.Remove("twitch_token");
+            lock (_lock)
+            {
+                _currentToken = null;
+            }
         }
 
         public async Task<List<TwitchClip>> GetClipsByGameAsync(string gameId, string? period = null)

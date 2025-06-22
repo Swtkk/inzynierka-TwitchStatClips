@@ -1,4 +1,12 @@
-﻿
+﻿@using TwitchStatClips.TwitchService
+@inject TwitchTokenService TokenService
+
+@{
+    var token = TokenService.GetToken();
+    var isUserLoggedIn = token != null && !string.IsNullOrEmpty(token.RefreshToken);
+    var userInfo = isUserLoggedIn ? await TokenService.GetUserInfoAsync() : (Name: null, AvatarUrl: null);
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,7 +35,27 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
                         @await Html.PartialAsync("_GameDropdown")
+                    </ul>
 
+                    <ul class="navbar-nav ms-auto">
+                        @if (isUserLoggedIn)
+                        {
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <img src="@userInfo.AvatarUrl" class="rounded-circle me-2" alt="Avatar" width="32" height="32" />
+                                <span>@userInfo.Name</span>
+                            </li>
+                            <li class="nav-item">
+                                <form method="post" asp-page="/Logout">
+                                    <a class="btn btn-outline-secondary btn-sm" asp-page="/Auth/Logout">Wyloguj</a>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-outline-primary btn-sm" href="/auth/twitch/login">Zaloguj się przez Twitch</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -48,8 +76,6 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/site.js"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

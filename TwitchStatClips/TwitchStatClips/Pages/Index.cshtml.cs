@@ -17,22 +17,17 @@ public class IndexModel : PageModel
     public List<TwitchClip> Clips { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(string? gameName, string? period, string? language)
-
     {
         if (!_tokenService.IsTokenAvailable())
         {
-            var clientId = _config["Twitch:ClientId"];
-            var redirectUri = _config["Twitch:RedirectUri"];
-            var scope = "user:read:email clips:edit";
-
-            var loginUrl = $"https://id.twitch.tv/oauth2/authorize?client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&response_type=code&scope={Uri.EscapeDataString(scope)}";
-
-            return Redirect(loginUrl);
+            // Jeœli nie ma tokena — pobierz token aplikacyjny (nie u¿ytkownika)
+            await _tokenService.RequestAppTokenAsync();
         }
 
         gameName ??= "Just Chatting";
-        period ??= "week"; 
+        period ??= "week";
         SelectedGame = gameName;
+
         var gameId = await _tokenService.GetGameIdByNameAsync(gameName);
         if (gameId != null)
         {
@@ -41,7 +36,6 @@ public class IndexModel : PageModel
 
         return Page();
     }
-
 
 
 
