@@ -2,122 +2,129 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Twitch Clips";
+
+    var selectedPeriod = Request.Query["period"].ToString();
+    if (string.IsNullOrEmpty(selectedPeriod))
+    {
+        selectedPeriod = "week";
+    }
+
+    var periodOptions = new Dictionary<string, string>
+    {
+        { "day", "24h" },
+        { "week", "7 dni" },
+        { "month", "30 dni" },
+        { "all", "Ogólne" }
+    };
 }
 
-<h1>Klipy z gry <span id="gameName">@Model.SelectedGame</span></h1>
-
-<!-- Filtrowanie -->
-<div class="mb-3">
-    <label for="periodSelector">Okres:</label>
-    <select id="periodSelector" class="form-select d-inline-block w-auto mx-2" onchange="onPeriodChange()">
-        <option value="day">Ostatnie 24h</option>
-        <option value="week" selected>Ostatni tydzień</option>
-        <option value="month">Ostatni miesiąc</option>
-        <option value="all">Wszystkie</option>
-    </select>
+<h1 class="mb-4">Klipy z gry <span id="gameName">@Model.SelectedGame</span></h1>
+<div id="loader" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Ładowanie...</span>
+    </div>
 </div>
 
-<!-- Paginacja góra -->
-<div id="pagination-top" class="text-center my-3"></div>
+<!-- Nowe przyciski okresu -->
+<div class="mb-4">
+    <div class="btn-group" role="group" aria-label="Wybierz okres">
+        @foreach (var option in periodOptions)
+        {
+            var isActive = selectedPeriod == option.Key;
+            <a class="btn @(isActive ? "btn-primary" : "btn-outline-primary")"
+               asp-page="/Index"
+               asp-route-gameName="@Model.SelectedGame"
+               asp-route-period="@option.Key">
+                @option.Value
+            </a>
+        }
+    </div>
+</div>
 
 <!-- Klipy -->
-<div id="clips-container" class="row"></div>
+<div class="row" id="clips-container"></div>
 
-<!-- Paginacja dół -->
-<div id="pagination-bottom" class="text-center my-4"></div>
+<!-- Przycisk "Załaduj więcej" -->
+<div class="text-center mt-4 mb-5">
+    <button id="loadMoreBtn" class="btn btn-primary">Załaduj więcej</button>
+</div>
+
+<!-- Modal -->
+<div id="clipModal" class="modal-overlay" style="display:none;" onclick="hideClipModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <iframe id="modalIframe" src="" allowfullscreen loading="lazy" frameborder="0"></iframe>
+    </div>
+</div>
+
+
 
 @section Scripts {
     <script>
         const gameName = "@Model.SelectedGame";
-        const clipsPerPage = 10;
-        let currentPage = 1;
-        let period = document.getElementById("periodSelector")?.value || "week";
+        const period = "@selectedPeriod";
+        const clipsPerPage = 8;
+        let allClips = [];
+        let visibleClips = 0;
 
-        function onPeriodChange() {
-            period = document.getElementById("periodSelector").value;
-            currentPage = 1;
-            loadClips(currentPage);
+        function showClipModal(embedUrl) {
+            const modal = document.getElementById("clipModal");
+            const iframe = document.getElementById("modalIframe");
+            iframe.src = `${embedUrl}&parent=${location.hostname}`;
+            modal.style.display = "flex";
         }
 
-        async function loadClips(page) {
-            const response = await fetch(`/api/clips?gameName=${encodeURIComponent(gameName)}&period=${period}&page=${page}&pageSize=${clipsPerPage}`);
+        function hideClipModal(event) {
+            const modal = document.getElementById("clipModal");
+            const iframe = document.getElementById("modalIframe");
+            iframe.src = "";
+            modal.style.display = "none";
+        }
+
+                async function loadAllClipsOnce() {
+            const loader = document.getElementById("loader");
+            loader.style.display = "block";
+
+            const response = await fetch(`/api/clips?gameName=${encodeURIComponent(gameName)}&period=${period}`);
             const data = await response.json();
+            allClips = data.clips;
+            visibleClips = 0;
 
+            document.getElementById("clips-container").innerHTML = "";
+            loader.style.display = "none";
+            renderMoreClips();
+        }
+
+
+        function renderMoreClips() {
             const container = document.getElementById("clips-container");
-            container.innerHTML = "";
+            const btn = document.getElementById("loadMoreBtn");
 
-            data.clips.forEach(clip => {
+            const nextClips = allClips.slice(visibleClips, visibleClips + clipsPerPage);
+            visibleClips += nextClips.length;
+
+            nextClips.forEach(clip => {
                 const col = document.createElement("div");
-                col.className = "col-md-6 mb-4";
+                col.className = "col-md-3 mb-4";
+
                 col.innerHTML = `
-                    <div class="card">
-                        <div id="clip-${clip.id}" class="clip-container" style="cursor:pointer;" onclick="loadClip('${clip.id}', '${clip.embedUrl}')">
-                            <img src="${clip.thumbnailUrl}" alt="${clip.title}" class="card-img-top clip-thumbnail" style="width:100%; height:auto;" />
+                    <div class="card h-100 shadow-sm">
+                        <div class="clip-container" style="cursor:pointer;" onclick="showClipModal('${clip.embedUrl}')">
+                            <img src="${clip.thumbnailUrl}" alt="${clip.title}" class="card-img-top" style="width:100%; height:auto;" />
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">${clip.title}</h5>
-                            <p class="card-text">Autor: ${clip.broadcasterName}</p>
+                            <h6 class="card-title mb-2">${clip.title}</h6>
+                            <p class="card-text text-muted mb-0">Autor: ${clip.broadcasterName}</p>
                         </div>
                     </div>`;
                 container.appendChild(col);
             });
 
-            renderPagination(page, data.hasMore);
+            if (visibleClips >= allClips.length) {
+                btn.style.display = "none";
+            }
         }
 
-        function loadClip(clipId, embedUrl) {
-            const container = document.getElementById(`clip-${clipId}`);
-            container.innerHTML = `
-                <iframe src="${embedUrl}&parent=${location.hostname}" height="360" width="100%" allowfullscreen></iframe>`;
-        }
-
-                     function renderPagination(current, hasMore) {
-            const paginationTop = document.getElementById("pagination-top");
-            const paginationBottom = document.getElementById("pagination-bottom");
-            const totalVisible = 5;
-            const totalPages = 10; // max 100 klipów / 10 na stronę
-
-            [paginationTop, paginationBottom].forEach(pagination => {
-                pagination.innerHTML = "";
-
-                const createButton = (text, page, disabled = false, active = false) => {
-                    const btn = document.createElement("button");
-                    btn.className = "btn mx-1 " + (active ? "btn-primary" : "btn-outline-secondary");
-                    btn.disabled = disabled;
-                    btn.textContent = text;
-                    if (!disabled) {
-                        btn.onclick = () => loadClips(page);
-                    }
-                    return btn;
-                };
-
-                // Pierwsza i poprzednia
-                pagination.appendChild(createButton("⏮️", 1, current === 1));
-                pagination.appendChild(createButton("⟨", current - 1, current === 1));
-
-                // Numery stron
-                let start = Math.max(1, current - Math.floor(totalVisible / 2));
-                let end = start + totalVisible - 1;
-
-                // Jeśli koniec przekracza limit stron – przesuń w lewo
-                if (end > totalPages) {
-                    end = totalPages;
-                    start = Math.max(1, end - totalVisible + 1);
-                }
-
-                for (let i = start; i <= end; i++) {
-                    pagination.appendChild(createButton(i.toString(), i, false, i === current));
-                }
-
-                // Następna i ostatnia
-                pagination.appendChild(createButton("⟩", current + 1, current >= totalPages));
-                pagination.appendChild(createButton("⏭️", totalPages, current === totalPages));
-            });
-        }
-
-
-
-        // Start
-        loadClips(currentPage);
+        document.getElementById("loadMoreBtn").addEventListener("click", renderMoreClips);
+        window.addEventListener("DOMContentLoaded", loadAllClipsOnce);
     </script>
 }

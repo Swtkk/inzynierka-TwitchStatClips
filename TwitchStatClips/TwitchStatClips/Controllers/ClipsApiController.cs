@@ -17,7 +17,7 @@ namespace TwitchStatClips.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetClips(string gameName, string? period = "week", int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetClips(string gameName, string? period = "week", int page = 1, int pageSize = 100)
         {
             if (!_tokenService.IsTokenAvailable())
                 return Unauthorized();
