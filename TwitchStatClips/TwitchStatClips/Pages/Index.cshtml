@@ -71,51 +71,51 @@
                 <iframe src="${embedUrl}&parent=${location.hostname}" height="360" width="100%" allowfullscreen></iframe>`;
         }
 
-        function renderPagination(current, hasMore) {
+                     function renderPagination(current, hasMore) {
             const paginationTop = document.getElementById("pagination-top");
             const paginationBottom = document.getElementById("pagination-bottom");
+            const totalVisible = 5;
+            const totalPages = 10; // max 100 klipów / 10 na stronę
 
             [paginationTop, paginationBottom].forEach(pagination => {
                 pagination.innerHTML = "";
 
-                const input = document.createElement("input");
-                input.type = "number";
-                input.min = 1;
-                input.value = current;
-                input.className = "form-control d-inline-block mx-2";
-                input.style.width = "70px";
-                input.onkeydown = e => {
-                    if (e.key === "Enter") {
-                        const newPage = parseInt(input.value);
-                        if (newPage > 0) loadClips(newPage);
+                const createButton = (text, page, disabled = false, active = false) => {
+                    const btn = document.createElement("button");
+                    btn.className = "btn mx-1 " + (active ? "btn-primary" : "btn-outline-secondary");
+                    btn.disabled = disabled;
+                    btn.textContent = text;
+                    if (!disabled) {
+                        btn.onclick = () => loadClips(page);
                     }
+                    return btn;
                 };
 
-                const first = document.createElement("button");
-                first.textContent = "⏮️";
-                first.className = "btn btn-outline-secondary mx-1";
-                first.onclick = () => loadClips(1);
+                // Pierwsza i poprzednia
+                pagination.appendChild(createButton("⏮️", 1, current === 1));
+                pagination.appendChild(createButton("⟨", current - 1, current === 1));
 
-                const prev = document.createElement("button");
-                prev.textContent = "⟨";
-                prev.className = "btn btn-outline-secondary mx-1";
-                prev.disabled = current <= 1;
-                prev.onclick = () => loadClips(current - 1);
+                // Numery stron
+                let start = Math.max(1, current - Math.floor(totalVisible / 2));
+                let end = start + totalVisible - 1;
 
-                const next = document.createElement("button");
-                next.textContent = "⟩";
-                next.className = "btn btn-outline-secondary mx-1";
-                next.disabled = !hasMore;
-                next.onclick = () => loadClips(current + 1);
+                // Jeśli koniec przekracza limit stron – przesuń w lewo
+                if (end > totalPages) {
+                    end = totalPages;
+                    start = Math.max(1, end - totalVisible + 1);
+                }
 
-          
+                for (let i = start; i <= end; i++) {
+                    pagination.appendChild(createButton(i.toString(), i, false, i === current));
+                }
 
-                pagination.appendChild(first);
-                pagination.appendChild(prev);
-                pagination.appendChild(input);
-                pagination.appendChild(next);
+                // Następna i ostatnia
+                pagination.appendChild(createButton("⟩", current + 1, current >= totalPages));
+                pagination.appendChild(createButton("⏭️", totalPages, current === totalPages));
             });
         }
+
+
 
         // Start
         loadClips(currentPage);
