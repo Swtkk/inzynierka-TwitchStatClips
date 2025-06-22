@@ -7,6 +7,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<TwitchTokenService>();
 builder.Services.AddHostedService<TwitchTokenRefreshService>();
+builder.Services.AddControllers();
+builder.Services.AddHttpClient<TwitchClipService>();
 
 var app = builder.Build();
 
@@ -26,5 +28,5 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
-
+app.MapControllers();
 app.Run();

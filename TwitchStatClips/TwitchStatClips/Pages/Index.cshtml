@@ -4,29 +4,120 @@
     ViewData["Title"] = "Twitch Clips";
 }
 
-<h1>Twitch Clips</h1>
-<h2>Klipy z gry @Model.SelectedGame</h2>
+<h1>Klipy z gry <span id="gameName">@Model.SelectedGame</span></h1>
 
-@if (Model.Clips.Count == 0)
-{
-    <p>Brak klipów do wyświetlenia.</p>
-}
-else
-{
-    <div class="row">
-        @foreach (var clip in Model.Clips)
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div id="clip-@clip.Id" class="clip-container" style="cursor:pointer;" onclick="loadClip('@clip.Id')">
-                        <img src="@clip.ThumbnailUrl" alt="@clip.Title" class="card-img-top clip-thumbnail" style="width:100%; height:auto;" />
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">@clip.Title</h5>
-                        <p class="card-text">Autor: @clip.BroadcasterName</p>
-                    </div>
-                </div>
-            </div>
+<!-- Filtrowanie -->
+<div class="mb-3">
+    <label for="periodSelector">Okres:</label>
+    <select id="periodSelector" class="form-select d-inline-block w-auto mx-2" onchange="onPeriodChange()">
+        <option value="day">Ostatnie 24h</option>
+        <option value="week" selected>Ostatni tydzień</option>
+        <option value="month">Ostatni miesiąc</option>
+        <option value="all">Wszystkie</option>
+    </select>
+</div>
+
+<!-- Paginacja góra -->
+<div id="pagination-top" class="text-center my-3"></div>
+
+<!-- Klipy -->
+<div id="clips-container" class="row"></div>
+
+<!-- Paginacja dół -->
+<div id="pagination-bottom" class="text-center my-4"></div>
+
+@section Scripts {
+    <script>
+        const gameName = "@Model.SelectedGame";
+        const clipsPerPage = 10;
+        let currentPage = 1;
+        let period = document.getElementById("periodSelector")?.value || "week";
+
+        function onPeriodChange() {
+            period = document.getElementById("periodSelector").value;
+            currentPage = 1;
+            loadClips(currentPage);
         }
-    </div>
+
+        async function loadClips(page) {
+            const response = await fetch(`/api/clips?gameName=${encodeURIComponent(gameName)}&period=${period}&page=${page}&pageSize=${clipsPerPage}`);
+            const data = await response.json();
+
+            const container = document.getElementById("clips-container");
+            container.innerHTML = "";
+
+            data.clips.forEach(clip => {
+                const col = document.createElement("div");
+                col.className = "col-md-6 mb-4";
+                col.innerHTML = `
+                    <div class="card">
+                        <div id="clip-${clip.id}" class="clip-container" style="cursor:pointer;" onclick="loadClip('${clip.id}', '${clip.embedUrl}')">
+                            <img src="${clip.thumbnailUrl}" alt="${clip.title}" class="card-img-top clip-thumbnail" style="width:100%; height:auto;" />
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">${clip.title}</h5>
+                            <p class="card-text">Autor: ${clip.broadcasterName}</p>
+                        </div>
+                    </div>`;
+                container.appendChild(col);
+            });
+
+            renderPagination(page, data.hasMore);
+        }
+
+        function loadClip(clipId, embedUrl) {
+            const container = document.getElementById(`clip-${clipId}`);
+            container.innerHTML = `
+                <iframe src="${embedUrl}&parent=${location.hostname}" height="360" width="100%" allowfullscreen></iframe>`;
+        }
+
+        function renderPagination(current, hasMore) {
+            const paginationTop = document.getElementById("pagination-top");
+            const paginationBottom = document.getElementById("pagination-bottom");
+
+            [paginationTop, paginationBottom].forEach(pagination => {
+                pagination.innerHTML = "";
+
+                const input = document.createElement("input");
+                input.type = "number";
+                input.min = 1;
+                input.value = current;
+                input.className = "form-control d-inline-block mx-2";
+                input.style.width = "70px";
+                input.onkeydown = e => {
+                    if (e.key === "Enter") {
+                        const newPage = parseInt(input.value);
+                        if (newPage > 0) loadClips(newPage);
+                    }
+                };
+
+                const first = document.createElement("button");
+                first.textContent = "⏮️";
+                first.className = "btn btn-outline-secondary mx-1";
+                first.onclick = () => loadClips(1);
+
+                const prev = document.createElement("button");
+                prev.textContent = "⟨";
+                prev.className = "btn btn-outline-secondary mx-1";
+                prev.disabled = current <= 1;
+                prev.onclick = () => loadClips(current - 1);
+
+                const next = document.createElement("button");
+                next.textContent = "⟩";
+                next.className = "btn btn-outline-secondary mx-1";
+                next.disabled = !hasMore;
+                next.onclick = () => loadClips(current + 1);
+
+          
+
+                pagination.appendChild(first);
+                pagination.appendChild(prev);
+                pagination.appendChild(input);
+                pagination.appendChild(next);
+            });
+        }
+
+        // Start
+        loadClips(currentPage);
+    </script>
 }
