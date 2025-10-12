@@ -13,10 +13,10 @@
     --border: #2b3344;
     --shadow: 0 10px 30px rgba(0,0,0,.45);
     --hue: 0deg;
-    --orb-t1: 10s; /* lewy orb */
-    --orb-t2: 12s; /* prawy orb */
-    --orb-t3: 14s; /* dolny orb */
-    --orb-amp-y: 14vh; /* amplituda pionowa (większa = bardziej widoczne) */
+    --orb-size: 33vmax; /* średnica orba */
+    --orb-blur: 48px; /* rozmycie orba */
+    --orb-t1: 21s; /* czas przejazdu orba 1 */
+    --orb-t2: 27s; /* czas przejazdu orba 2 */
 }
 
 /* ===== Global ===== */
@@ -414,90 +414,69 @@ h1 {
 #ambient-orbs {
     pointer-events: none;
     position: fixed;
-    inset: -20vmax;
-    z-index: 1; /* nad #ambient-bg, ale pod treścią */
-    filter: blur(48px) saturate(115%);
+    inset: -20vmax; /* zapas poza ekranem */
+    z-index: 1;
+    /* bez globalnego blura – czytelniejszy ruch */
+    filter: saturate(115%);
 }
 
     /* Wspólna baza orba */
     #ambient-orbs .orb {
         position: absolute;
-        width: 55vmax;
-        height: 55vmax;
+        width: var(--orb-size);
+        height: var(--orb-size);
         border-radius: 50%;
         opacity: .25;
         mix-blend-mode: screen;
-        will-change: transform, opacity;
+        will-change: transform,opacity;
+        filter: blur(var(--orb-blur));
+        /* Wspólny punkt odniesienia: od top */
+        top: 0;
     }
 
-    /* Lewy – jaśniejszy fiolet: start nisko -> w górę -> odbicie */
+    /* ORB 1 – lewy, fiolet */
     #ambient-orbs .orb-1 {
-        left: -10vmax;
-        bottom: -12vmax; /* start niżej */
-        background: radial-gradient(closest-side, #b68cff 0%, transparent 70%);
-        animation: orbBounceUp var(--orb-t1) ease-in-out infinite alternate;
+        left: 7vmax;
+        background: radial-gradient(closest-side, #b68cff 0%, transparent 75%);
+        animation: orbTravel var(--orb-t1) linear infinite;
     }
 
-    /* Prawy – bardziej niebieski: start wysoko -> w dół -> odbicie */
+    /* ORB 2 – prawy, niebieskawy (odwrócony kierunek) */
     #ambient-orbs .orb-2 {
-        right: -12vmax;
-        top: -8vmax; /* start wyżej */
-        background: radial-gradient(closest-side, #5aa4ff 0%, transparent 72%);
-        animation: orbBounceDown var(--orb-t2) ease-in-out infinite alternate;
+        right: 11vmax;
+        background: radial-gradient(closest-side, #5aa4ff 0%, transparent 71%);
+        animation: orbTravel var(--orb-t2) linear infinite reverse;
     }
 
-    /* Dół – delikatny fiolet/niebieski: subtelne bujanie */
-    #ambient-orbs .orb-3 {
-        left: 22vmax;
-        bottom: -16vmax;
-        opacity: .18;
-        background: radial-gradient(closest-side, #7aa2f7 0%, transparent 72%);
-        animation: orbBob var(--orb-t3) ease-in-out infinite;
+    /* ORB 3 – środkowy, delikatniejszy */
+   
+
+/* Trasa przejazdu: z dołu (poza ekranem) do góry (poza ekranem)
+   Używamy vh + vmax, żeby uwzględnić wielkość orba i wysokość okna. */
+@keyframes orbTravel {
+    from {
+        transform: translate3d(0, calc(100vh + 20vmax), 0);
     }
 
-/* --- Animacje pionowe --- */
-
-/* Idzie w GÓRĘ od startu (0 -> -amp) i odbija (alternate) */
-@keyframes orbBounceUp {
-    0% {
-        transform: translateY(0) scale(1.01);
-    }
-
-    50% {
-        transform: translateY(calc(-0.6 * var(--orb-amp-y))) scale(1.03);
-    }
-
-    100% {
-        transform: translateY(calc(-1.0 * var(--orb-amp-y))) scale(1.02);
+    to {
+        transform: translate3d(0, calc(-100vh - 20vmax), 0);
     }
 }
 
-/* Idzie w DÓŁ od startu (0 -> +amp) i odbija (alternate) */
-@keyframes orbBounceDown {
-    0% {
-        transform: translateY(0) scale(1.01);
-    }
-
-    50% {
-        transform: translateY(calc( 0.6 * var(--orb-amp-y))) scale(1.03);
-    }
-
-    100% {
-        transform: translateY(calc( 1.0 * var(--orb-amp-y))) scale(1.02);
-    }
+/* (Opcjonalnie) przesunięcia fazy, by nie startowały równo */
+#ambient-orbs .orb-2 {
+    animation-delay: -3s;
 }
 
-/* Delikatne bujanie góra–dół – mniej agresywne */
-@keyframes orbBob {
-    0% {
-        transform: translateY(calc(-0.15 * var(--orb-amp-y))) scale(1.00);
-    }
 
-    50% {
-        transform: translateY(calc( 0.20 * var(--orb-amp-y))) scale(1.02);
-    }
 
-    100% {
-        transform: translateY(calc(-0.15 * var(--orb-amp-y))) scale(1.00);
+/* (Opcjonalnie) wymuszenie animacji przy włączonym Reduce Motion.
+   Jeśli chcesz być 100% A11y – usuń ten blok. */
+@media (prefers-reduced-motion: reduce) {
+    #ambient-orbs .orb-1,
+    #ambient-orbs .orb-2
+   {
+        animation-iteration-count: infinite !important;
+        /* zostawiamy ich oryginalne duration – nic tu nie skracamy */
     }
 }
