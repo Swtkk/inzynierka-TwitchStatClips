@@ -1,87 +1,228 @@
+﻿/* =========================
+   Modern Dark Theme (final version)
+   ========================= */
+:root {
+    --bg-1: #0f0f12;
+    --bg-2: #151922;
+    --card: #1a1f2b;
+    --muted: #a9b1c0;
+    --text: #e6e9ef;
+    --primary: #7aa2f7;
+    --primary-2: #9ab8ff;
+    --accent: #a371f7;
+    --border: #2b3344;
+    --shadow: 0 10px 30px rgba(0,0,0,.45);
+    --hue: 0deg;
+    --orb-t1: 10s; /* lewy orb */
+    --orb-t2: 12s; /* prawy orb */
+    --orb-t3: 14s; /* dolny orb */
+    --orb-amp-y: 14vh; /* amplituda pionowa (większa = bardziej widoczne) */
+}
+
+/* ===== Global ===== */
 html {
-  font-size: 14px;
+    background: #0f0f12;
+    position: relative;
+    height: 100%;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
+/* 2) BODY jest flexem, ale z PRZEZROCZYSTYM tłem */
 body {
-  margin-bottom: 60px;
-}
-.clip-thumbnail {
-    transition: transform 0.2s ease;
+    margin: 0;
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: transparent; /* <-- kluczowe */
 }
 
-    .clip-thumbnail:hover {
+/* 3) JEDNA warstwa glow: html::before ( żadnych body::before/after ) */
+
+main {
+    flex: 1 0 auto;
+    padding-bottom: 2rem;
+}
+
+/* ===== Header / Footer ===== */
+header, .navbar, footer {
+    background: rgba(20,24,32,.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+    /* Footer fix */
+    footer.footer {
+        position: static !important;
+        bottom: auto !important;
+        width: 100%;
+        margin-top: auto;
+        background: rgba(20,24,32,.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-top: 1px solid var(--border);
+        text-align: center;
+        padding: 0.6rem 0;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar .navbar-brand,
+    .navbar .nav-link {
+        color: #e9edf5 !important;
+        font-size: 1rem;
+    }
+
+        .navbar .nav-link:hover {
+            color: #ffffff !important;
+        }
+
+/* ===== Links ===== */
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+    a:hover {
+        color: var(--primary-2);
+    }
+
+.text-muted {
+    color: #c3cada !important;
+}
+
+/* ===== Headings ===== */
+h1 {
+    font-size: clamp(2.8rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 1rem;
+}
+
+    h1 .badge-game {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: clamp(1.5rem, 2.5vw, 1.8rem);
+        padding: .55rem .9rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, rgba(122,162,247,.18), rgba(163,113,247,.18));
+        color: #fff;
+        font-weight: 700;
+    }
+
+/* ===== Buttons ===== */
+.btn {
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, color .12s ease;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+    .btn:active {
+        transform: translateY(1px);
+    }
+
+.btn-primary {
+    background: linear-gradient(180deg, var(--primary), var(--primary-2));
+    color: #0b0e14;
+    box-shadow: 0 6px 18px rgba(122,162,247,.35);
+}
+
+    .btn-primary:hover {
+        filter: brightness(1.08);
+        box-shadow: 0 8px 22px rgba(122,162,247,.45);
+    }
+
+.btn-outline-primary {
+    background: transparent;
+    color: var(--primary);
+/*    border-color: var(--primary);*/
+    border-color:#8a30ef;
+}
+
+    .btn-outline-primary:hover {
+        background: var(--primary);
+        color: #0b0e14;
+        border-color: #8a30ef;
+    }
+
+/* Button group */
+.btn-group .btn {
+    padding: .5rem 1.25rem;
+}
+
+/* Center "Load More" */
+#loadMoreBtn {
+    display: inline-block;
+    margin: 1rem auto 0 auto;
+}
+
+/* ===== Cards ===== */
+.card {
+    background: rgba(26,31,43,.75);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 40px rgba(0,0,0,.55);
+    }
+
+    .card .card-body {
+        color: var(--text);
+        padding: 1rem;
+    }
+
+    .card .card-title {
+        color: #f5f7fb;
+        font-size: 1rem;
+        margin-bottom: .4rem;
+    }
+
+    .card .card-text {
+        color: #c3cada;
+        font-size: .9rem;
+    }
+
+/* ===== Thumbnails ===== */
+.clip-thumbnail, .card-img-top {
+    transition: transform .2s ease, filter .2s ease;
+}
+
+    .clip-thumbnail:hover, .card-img-top:hover {
         transform: scale(1.03);
     }
 
-
-
-    }
-
-
-.card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-    .card .ratio {
-        flex-shrink: 0;
-    }
-
-.card-body {
-    flex-grow: 1;
-}
-
-#loadMoreBtn {
-    display: inline-block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-    #loadMoreBtn:only-child {
-        display: block;
-        margin: 0 auto;
-    }
-
-
-#loader {
-    display: none;
-}
-
-
+/* ===== Modal (centered clip view) ===== */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.85);
-    display: none; /* domy�lnie ukryty */
+    inset: 0;
+    background-color: rgba(6,8,12,0.85);
+    display: none;
     justify-content: center;
     align-items: center;
-    z-index: 1050;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
+
+    .modal-overlay[style*="display: flex"] {
+        opacity: 1;
+    }
 
 .modal-content {
     position: relative;
     width: 90%;
     max-width: 960px;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16/9;
     background: transparent;
     display: flex;
     justify-content: center;
@@ -92,6 +233,271 @@ body {
         width: 100%;
         height: 100%;
         border: none;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        border-radius: 14px;
+        box-shadow: 0 0 40px rgba(0,0,0,0.7);
     }
+
+/* ===== Forms ===== */
+.form-control, input, select, textarea {
+    background: #121722;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .5rem .75rem;
+}
+
+    .form-control:focus, input:focus, select:focus, textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 .25rem rgba(122,162,247,.18);
+    }
+
+
+
+/* Kontener filtrów – okres + gra */
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+}
+
+.scrollable-menu {
+    max-height: 420px; /* około 10 pozycji */
+    overflow-y: auto;
+    width: min(420px, 90vw);
+    border: 1px solid var(--border);
+}
+
+.dropdown-menu-dark {
+    background: rgba(20,24,32,.98);
+    color: var(--text);
+}
+
+    .dropdown-menu-dark .dropdown-item {
+        color: var(--text);
+    }
+
+        .dropdown-menu-dark .dropdown-item:hover {
+            background: rgba(122,162,247,.15);
+            color: #fff;
+        }
+
+        .dropdown-menu-dark .dropdown-item.active,
+        .dropdown-menu-dark .dropdown-item:active {
+            background: linear-gradient(180deg, var(--primary), var(--primary-2));
+            color: #0b0e14;
+        }
+
+#gameDropdownBtn {
+    min-width: 200px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .filters-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* === GLASS NAVBAR === */
+.app-navbar {
+    background: rgba(18,20,28,.55);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    border-color: var(--border);
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+}
+
+.app-brand {
+    color: #eaf0ff !important;
+    font-weight: 800;
+    letter-spacing: .3px;
+}
+
+.app-nav .nav-link {
+    position: relative;
+    color: #dfe6f5 !important;
+    opacity: .9;
+    margin: 0 .25rem;
+    padding: .5rem .75rem;
+    border-radius: 10px;
+}
+
+    .app-nav .nav-link:hover {
+        opacity: 1;
+    }
+
+    .app-nav .nav-link::after {
+        content: "";
+        position: absolute;
+        left: .6rem;
+        right: .6rem;
+        bottom: .35rem;
+        height: 2px;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--primary));
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform .18s ease;
+    }
+
+    .app-nav .nav-link:hover::after {
+        transform: scaleX(1);
+    }
+
+/* Toggler w ciemnym motywie */
+.app-toggler {
+    border-color: #3a4254;
+}
+
+.navbar-toggler-icon {
+    filter: invert(90%);
+}
+
+/* === Subtelne animowane tło: fiolet + niebieski === */
+
+#ambient-bg {
+    position: fixed;
+    inset: -15vmax;
+    z-index: 0; /* pod całą treścią */
+    pointer-events: none;
+    background: radial-gradient(70vmax 70vmax at 15% 20%, rgba(180, 100, 255, 0.20), transparent 65%), /* jaśniejszy fiolet z lewej */
+    radial-gradient(65vmax 65vmax at 85% 25%, rgba( 64, 150, 255, 0.20), transparent 60%), /* chłodny niebieski z prawej */
+    radial-gradient(80vmax 80vmax at 50% 110%, rgba(100, 80, 255, 0.10), transparent 70%); /* delikatny akcent u dołu */
+    filter: blur(80px) brightness(0.55) saturate(130%);
+    transform: translate3d(0,0,0) scale(1);
+    animation: ambientFloat 45s ease-in-out infinite alternate, ambientShift 120s linear infinite;
+}
+
+    /* Lekki antybanding (niewidoczny w ruchu, łamie pasma) */
+    #ambient-bg::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 2px);
+        background-size: 4px 4px;
+        opacity: .18;
+        mix-blend-mode: soft-light;
+    }
+
+/* Delikatny dryf całej plamy */
+@keyframes ambientFloat {
+    0% {
+        transform: translate3d(-1%, -0.5%, 0) scale(1.005);
+    }
+
+    50% {
+        transform: translate3d( 1.5%, 1%, 0) scale(1.01);
+    }
+
+    100% {
+        transform: translate3d(-1%, 0.5%, 0) scale(1.004);
+    }
+}
+
+/* Powolny, ledwo zauważalny shift barwy */
+@keyframes ambientShift {
+    from {
+        filter: blur(80px) brightness(0.55) saturate(130%) hue-rotate(0deg);
+    }
+
+    to {
+        filter: blur(80px) brightness(0.55) saturate(130%) hue-rotate(18deg);
+    }
+}
+
+/* === Dryfujące bokeh orbs === */
+
+
+#ambient-orbs {
+    pointer-events: none;
+    position: fixed;
+    inset: -20vmax;
+    z-index: 1; /* nad #ambient-bg, ale pod treścią */
+    filter: blur(48px) saturate(115%);
+}
+
+    /* Wspólna baza orba */
+    #ambient-orbs .orb {
+        position: absolute;
+        width: 55vmax;
+        height: 55vmax;
+        border-radius: 50%;
+        opacity: .25;
+        mix-blend-mode: screen;
+        will-change: transform, opacity;
+    }
+
+    /* Lewy – jaśniejszy fiolet: start nisko -> w górę -> odbicie */
+    #ambient-orbs .orb-1 {
+        left: -10vmax;
+        bottom: -12vmax; /* start niżej */
+        background: radial-gradient(closest-side, #b68cff 0%, transparent 70%);
+        animation: orbBounceUp var(--orb-t1) ease-in-out infinite alternate;
+    }
+
+    /* Prawy – bardziej niebieski: start wysoko -> w dół -> odbicie */
+    #ambient-orbs .orb-2 {
+        right: -12vmax;
+        top: -8vmax; /* start wyżej */
+        background: radial-gradient(closest-side, #5aa4ff 0%, transparent 72%);
+        animation: orbBounceDown var(--orb-t2) ease-in-out infinite alternate;
+    }
+
+    /* Dół – delikatny fiolet/niebieski: subtelne bujanie */
+    #ambient-orbs .orb-3 {
+        left: 22vmax;
+        bottom: -16vmax;
+        opacity: .18;
+        background: radial-gradient(closest-side, #7aa2f7 0%, transparent 72%);
+        animation: orbBob var(--orb-t3) ease-in-out infinite;
+    }
+
+/* --- Animacje pionowe --- */
+
+/* Idzie w GÓRĘ od startu (0 -> -amp) i odbija (alternate) */
+@keyframes orbBounceUp {
+    0% {
+        transform: translateY(0) scale(1.01);
+    }
+
+    50% {
+        transform: translateY(calc(-0.6 * var(--orb-amp-y))) scale(1.03);
+    }
+
+    100% {
+        transform: translateY(calc(-1.0 * var(--orb-amp-y))) scale(1.02);
+    }
+}
+
+/* Idzie w DÓŁ od startu (0 -> +amp) i odbija (alternate) */
+@keyframes orbBounceDown {
+    0% {
+        transform: translateY(0) scale(1.01);
+    }
+
+    50% {
+        transform: translateY(calc( 0.6 * var(--orb-amp-y))) scale(1.03);
+    }
+
+    100% {
+        transform: translateY(calc( 1.0 * var(--orb-amp-y))) scale(1.02);
+    }
+}
+
+/* Delikatne bujanie góra–dół – mniej agresywne */
+@keyframes orbBob {
+    0% {
+        transform: translateY(calc(-0.15 * var(--orb-amp-y))) scale(1.00);
+    }
+
+    50% {
+        transform: translateY(calc( 0.20 * var(--orb-amp-y))) scale(1.02);
+    }
+
+    100% {
+        transform: translateY(calc(-0.15 * var(--orb-amp-y))) scale(1.00);
+    }
+}

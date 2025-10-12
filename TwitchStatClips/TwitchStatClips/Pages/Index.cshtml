@@ -18,15 +18,17 @@
     };
 }
 
-<h1 class="mb-4">Klipy z gry <span id="gameName">@Model.SelectedGame</span></h1>
-<div id="loader" class="text-center my-5">
-    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">Ładowanie...</span>
-    </div>
-</div>
+<h1 class="mb-4">
+    Klipy z gry
+    <span class="badge-game" id="gameName">@Model.SelectedGame</span>
+</h1>
+
 
 <!-- Nowe przyciski okresu -->
-<div class="mb-4">
+<!-- Sekcja filtrów -->
+<div class="filters-container d-flex flex-wrap align-items-center gap-3 mb-4">
+
+    <!-- Przyciski okresu -->
     <div class="btn-group" role="group" aria-label="Wybierz okres">
         @foreach (var option in periodOptions)
         {
@@ -39,6 +41,19 @@
             </a>
         }
     </div>
+
+    <!-- Partial z dropdownem gier -->
+    @await Html.PartialAsync("_GameDropdown")
+
+</div>
+
+
+
+
+<div id="loader" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Ładowanie...</span>
+    </div>
 </div>
 
 <!-- Klipy -->
@@ -50,11 +65,12 @@
 </div>
 
 <!-- Modal -->
-<div id="clipModal" class="modal-overlay" style="display:none;" onclick="hideClipModal(event)">
+<div id="clipModal" class="modal-overlay" onclick="hideClipModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <iframe id="modalIframe" src="" allowfullscreen loading="lazy" frameborder="0"></iframe>
+        <iframe id="modalIframe" src="" allowfullscreen loading="lazy"></iframe>
     </div>
 </div>
+
 
 
 
