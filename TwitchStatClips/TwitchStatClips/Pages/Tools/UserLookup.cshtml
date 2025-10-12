@@ -1,0 +1,40 @@
+﻿@page
+@model UserLookupModel
+@{
+    ViewData["Title"] = "Szukaj użytkownika";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div style="width: 100%; max-width: 400px;">
+        <h2 class="text-center mb-4">Szukaj użytkownika po nicku</h2>
+
+        <form method="post">
+            <div class="mb-3">
+                <label for="nickname" class="form-label">Nick użytkownika</label>
+                <input type="text" class="form-control" id="nickname" name="Nickname" value="@Model.Nickname" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Szukaj</button>
+        </form>
+
+        <div class="mt-4">
+            <label for="userId" class="form-label">ID użytkownika</label>
+            <div class="input-group">
+                <input type="text" id="userId" class="form-control" value="@Model.UserId" readonly />
+                <button class="btn btn-outline-secondary" type="button" onclick="copyUserId()">Kopiuj</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyUserId() {
+            const input = document.getElementById("userId");
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value)
+                .then(() => alert("Skopiowano ID!"))
+                .catch(() => alert("Nie udało się skopiować."));
+        }
+    </script>
+}

@@ -35,6 +35,11 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
                         @await Html.PartialAsync("_GameDropdown")
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-page="/Tools/UserLookup">Szukaj użytkownika</a>
+                        </li>
+
+
                     </ul>
 
                     <ul class="navbar-nav ms-auto">
@@ -57,6 +62,7 @@
                             </li>
                         }
                     </ul>
+
                 </div>
             </div>
         </nav>

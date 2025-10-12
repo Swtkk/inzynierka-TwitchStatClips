@@ -356,5 +356,64 @@ namespace TwitchStatClips.TwitchService
             return result;
         }
 
+
+
+
+        public async Task<string?> GetUserIdByNameAsync(string username)
+        {
+            var token = GetToken();
+            if (token == null) return null;
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            client.DefaultRequestHeaders.Add("Client-Id", _config["Twitch:ClientId"]);
+
+            var response = await client.GetAsync($"https://api.twitch.tv/helix/users?login={Uri.EscapeDataString(username)}");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+
+            var data = doc.RootElement.GetProperty("data");
+            if (data.GetArrayLength() == 0)
+                return null;
+
+            return data[0].GetProperty("id").GetString();
+        }
+
+    
+
+
+
+    public async Task LogUserInfoByIdAsync(string id)
+        {
+            var token = GetToken();
+            if (token == null)
+            {
+                Console.WriteLine("❌ Token is null — nie można pobrać danych użytkownika.");
+                return;
+            }
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            client.DefaultRequestHeaders.Add("Client-Id", _config["Twitch:ClientId"]);
+
+            var response = await client.GetAsync($"https://api.twitch.tv/helix/users?id={id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"❌ Błąd pobierania danych użytkownika: {response.StatusCode}");
+                return;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+            var user = doc.RootElement.GetProperty("data")[0];
+
+            Console.WriteLine("🟣 Dane użytkownika:");
+            foreach (var property in user.EnumerateObject())
+            {
+                Console.WriteLine($"  {property.Name}: {property.Value}");
+            }
+        }
     }
-}
+    }
