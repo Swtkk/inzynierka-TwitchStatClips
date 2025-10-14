@@ -167,30 +167,66 @@ h1 {
     border: 1px solid var(--border);
     border-radius: 16px;
     box-shadow: var(--shadow);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden;
-    transition: transform .2s ease, box-shadow .2s ease;
 }
 
     .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 16px 40px rgba(0,0,0,.55);
+        box-shadow: 0 0 20px rgba(155, 89, 182, 0.4); /* fioletowy cień */
     }
 
-    .card .card-body {
-        color: var(--text);
-        padding: 1rem;
+.card-shell {
+    position: relative;
+    display: block;
+    height: 100%;
+}
+
+    /* Rogi — NA ZEWNĄTRZ, bez białych nakładek */
+    .card-shell::before {
+        content: "";
+        position: absolute;
+        inset: -10px;
+        pointer-events: none;
+        z-index: 5;
+        --c: #0eff04;
+        --s: 52px;
+        --t: 4px;
+        --p: 10px;
+        background: linear-gradient(var(--c),var(--c)) var(--p) var(--p)/var(--s) var(--t) no-repeat, linear-gradient(var(--c),var(--c)) var(--p) var(--p)/var(--t) var(--s) no-repeat, linear-gradient(var(--c),var(--c)) calc(100% - var(--p)) var(--p)/var(--s) var(--t) no-repeat, linear-gradient(var(--c),var(--c)) calc(100% - var(--p)) var(--p)/var(--t) var(--s) no-repeat, linear-gradient(var(--c),var(--c)) var(--p) calc(100% - var(--p))/var(--s) var(--t) no-repeat, linear-gradient(var(--c),var(--c)) var(--p) calc(100% - var(--p))/var(--t) var(--s) no-repeat, linear-gradient(var(--c),var(--c)) calc(100% - var(--p)) calc(100% - var(--p))/var(--s) var(--t) no-repeat, linear-gradient(var(--c),var(--c)) calc(100% - var(--p)) calc(100% - var(--p))/var(--t) var(--s) no-repeat;
+        opacity: 0;
+        transition: opacity .2s ease;
     }
 
-    .card .card-title {
-        color: #f5f7fb;
-        font-size: 1rem;
-        margin-bottom: .4rem;
+    .card-shell:hover::before {
+        opacity: 1;
     }
 
-    .card .card-text {
-        color: #c3cada;
-        font-size: .9rem;
-    }
+/* Kolory tekstu i treści zostają bez zmian */
+.card .card-body {
+    color: var(--text);
+    padding: 1rem;
+}
+
+.card .card-title {
+    color: #f5f7fb;
+    font-size: 1rem;
+    margin-bottom: .4rem;
+}
+
+.card .card-text {
+    color: #c3cada;
+    font-size: .9rem;
+}
+
+.card-img-top {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* jedna wysokość dla wszystkich */
+    object-fit: cover; /* przycinaj, nie rozciągaj */
+    display: block;
+}
+
+
 
 /* ===== Thumbnails ===== */
 .clip-thumbnail, .card-img-top {
