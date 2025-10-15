@@ -1,11 +1,30 @@
 ﻿@using TwitchStatClips.TwitchService
 @inject TwitchTokenService TokenService
-
-@{
+@using System.Security.Claims
+@* @{
     var token = TokenService.GetToken();
     var isUserLoggedIn = token != null && !string.IsNullOrEmpty(token.RefreshToken);
     var userInfo = isUserLoggedIn ? await TokenService.GetUserInfoAsync() : (Name: null, AvatarUrl: null);
+} *@
+@{
+    // var u = HttpContext.ctx.User;
+    // HttpContext context;
+    // var u = context?.User;
+    // return Results.Json(new
+    // {
+    //     isAuth = u?.Identity?.IsAuthenticated ?? false,
+    //     authType = u?.Identity?.AuthenticationType,
+    //     id = u?.FindFirstValue(ClaimTypes.NameIdentifier),
+    //     name = u?.FindFirstValue(ClaimTypes.Name)
+    // });
+    var isAuth = User?.Identity?.IsAuthenticated == true ? true : false;
+    // var isAuth = u?.Identity?.IsAuthenticated ?? false;
+    var userId = isAuth ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : null;
+    var userName = isAuth ? (User.FindFirst(ClaimTypes.Name)?.Value ?? User.Identity?.Name) : null; // ← ClaimTypes.Name
+    var avatar = isAuth ? User.FindFirst("avatar")?.Value : null;     
+    // ← custom "avatar"
 }
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +35,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/TwitchStatClips.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <meta http-equiv="Cache-Control" content="no-store" />
 </head>
 <body>
     <div id="ambient-bg" aria-hidden="true"></div>
@@ -40,18 +60,26 @@
                         <li class="nav-item"><a class="nav-link fs-5" asp-page="/Index">Strona Główna</a></li>
                         <li class="nav-item"><a class="nav-link fs-5" asp-page="/Privacy">Privacy</a></li>
                         <li class="nav-item"><a class="nav-link fs-5" asp-page="/Tools/UserLookup">Konwerter</a></li>
+                        @* @if (isUserLoggedIn)
+                        {
+                            <li class="nav-item"><a class="nav-link fs-5" asp-page="/Tools/FavoriteClips">Ulubione klipy</a></li>
+                        } *@
+                        @if (isAuth)
+                        {
+                            <li class="nav-item"><a class="nav-link fs-5" asp-page="/Tools/FavoriteClips">Ulubione klipy</a></li>
+                        }
                     </ul>
 
                     <ul class="navbar-nav ms-auto">
-                        @if (isUserLoggedIn)
+                        @if (isAuth)
                         {
                             <li class="nav-item d-flex align-items-center me-3 fs-4">
-                                <img src="@userInfo.AvatarUrl" class="rounded-circle me-2" alt="Avatar" width="40" height="40" />
-                                <span >@userInfo.Name</span>
+                                <img src="@avatar" class="rounded-circle me-2" alt="Avatar" width="40" height="40" />
+                                <span>@userName</span>
                             </li>
                             <li class="nav-item">
                                 <form method="post" asp-page="/Logout">
-                                    <a class="btn btn-outline-secondary btn-sm fs-5 p-2" asp-page="/Auth/Logout">Wyloguj</a>
+                                    <a class="btn btn-outline-secondary btn-sm fs-5 p-2" href="/auth/twitch/logout">Wyloguj</a>
                                 </form>
                             </li>
                         }
@@ -82,6 +110,38 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // serwerowy boole
+        window.isLoggedIn = @(User?.Identity?.IsAuthenticated == true ? "true" : "false");
+
+        // jeśli z jakiegokolwiek powodu HTML jest zcache’owany, sprawdź stan u źródła:
+        document.addEventListener('DOMContentLoaded', async () => {
+          try {
+            const r = await fetch('/auth/twitch/whoami', { cache: 'no-store' });
+            const me = await r.json();
+
+            if (me?.isAuthenticated === true) {
+              // schowaj „Zaloguj…”
+              const loginItem = document.querySelector('.nav-item a[href="/auth/twitch/login"]')?.closest('.nav-item');
+              if (loginItem) loginItem.classList.add('d-none');
+
+              // pokaż „Ulubione klipy”
+              const favItem = document.querySelector('[data-nav-favs]');
+              if (favItem) favItem.classList.remove('d-none');
+
+              // opcjonalnie – uzupełnij nick i avatar, jeśli HTML był stary:
+              const nameSpan = document.querySelector('[data-username]');
+              const avatarImg = document.querySelector('[data-avatar]');
+              if (nameSpan && me.name) nameSpan.textContent = me.name;
+              if (avatarImg && me.avatar) avatarImg.src = me.avatar;
+            }
+          } catch (e) {
+            console.warn('whoami check failed', e);
+          }
+        });
+    </script>
+
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

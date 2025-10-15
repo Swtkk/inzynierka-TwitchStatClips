@@ -1,0 +1,236 @@
+﻿@page
+@model TwitchStatClips.Pages.Tools.FavoriteClipsModel
+@{
+}
+
+<h1 class="mb-4">Ulubione klipy</h1>
+
+<div id="fav-loader" class="text-center my-5" style="display:none">
+    <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+        <span class="visually-hidden">Ładowanie…</span>
+    </div>
+</div>
+
+<!-- pusty stan -->
+<div id="fav-empty" class="text-center my-5" style="display:none">
+    <p class="text-muted mb-2">Nie masz jeszcze żadnych ulubionych klipów.</p>
+    <a class="btn btn-outline-primary" href="/">Przejdź do klipów</a>
+</div>
+
+<div class="row" id="fav-container"></div>
+
+<div class="text-center mt-4 mb-5">
+    <button id="favMoreBtn" class="btn btn-primary" style="display:none">Załaduj więcej</button>
+</div>
+
+@section Scripts {
+    <script>
+        let favPage = 1;
+        const favPageSize = 24;
+        let favTotal = 0, favLoaded = 0;
+
+        const elMore   = document.getElementById('favMoreBtn');
+        const elLoader = document.getElementById('fav-loader');
+        const elEmpty  = document.getElementById('fav-empty');
+        const elWrap   = document.getElementById('fav-container');
+
+        function showEmptyIfNeeded() {
+          const noItems = (favTotal === 0 || elWrap.children.length === 0);
+          elEmpty.style.display = noItems ? 'block' : 'none';
+        }
+
+        function updateMoreBtn() {
+          // chowanie przycisku w KAŻDYM przypadku, gdy nie ma nic więcej do ładowania
+          // oraz gdy którekolwiek z liczb jest 0 (zapobiega chwilowemu „mruganiu”)
+          const show = favTotal > 0 && favLoaded < favTotal;
+          elMore.style.display = show ? 'inline-block' : 'none';
+          showEmptyIfNeeded();
+        }
+
+        // prosta funkcja ustalająca publiczny URL klipa
+        function getPublicClipUrl(clip) {
+          if (clip.favoriteUrl) return clip.favoriteUrl;
+          if (clip.embedUrl?.includes('embed?clip=')) {
+            try {
+              const id = new URL(clip.embedUrl).searchParams.get('clip');
+              if (id) return `https://clips.twitch.tv/${id}`;
+            } catch {}
+          }
+          if (clip.clipId) return `https://clips.twitch.tv/${clip.clipId}`;
+          return '';
+        }
+
+        // toggle w ulubionych: odświeża serwer i UI
+        async function toggleFavorite(el) {
+          const payload = {
+            clipId: el.dataset.clipId,
+            title: el.dataset.title,
+            thumbnailUrl: el.dataset.thumb,
+            broadcasterName: el.dataset.bname,
+            embedUrl: el.dataset.embed
+          };
+
+          const r = await fetch('/api/favorites/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload),
+            cache: 'no-store'
+          });
+
+          if (!r.ok) {
+            const ct = r.headers.get('content-type') || '';
+            const body = ct.includes('application/json') ? await r.json() : await r.text();
+            console.error('toggle error', r.status, body);
+            alert('Nie udało się zapisać ulubionego.');
+            return;
+          }
+
+          const data = await r.json();
+
+          // w widoku ulubionych: jeśli odklikniesz, usuń kafelek
+          if (!data.isFavorite) {
+            const card = el.closest('.col-md-3');
+            if (card) card.remove();
+
+            // aktualizujemy OBA liczniki, żeby nie było mrugnięcia przycisku
+            if (favLoaded > 0) favLoaded--;
+            if (favTotal  > 0) favTotal--;
+
+            updateMoreBtn();
+          } else {
+            el.classList.add('active');
+            el.title = 'Usuń z ulubionych';
+          }
+        }
+
+        async function loadFavPage() {
+          // ukryj przycisk zanim policzymy nowe wartości – brak „flashu”
+          elMore.style.display = 'none';
+          elLoader.style.display = 'block';
+
+          try {
+            const r = await fetch(`/api/favorites?page=${favPage}&pageSize=${favPageSize}`, { cache: 'no-store' });
+            if (r.status === 401) {
+              elLoader.style.display = 'none';
+              alert('Zaloguj się, aby zobaczyć ulubione.');
+              return;
+            }
+            if (!r.ok) {
+              const text = await r.text();
+              console.error('Favorites GET failed:', r.status, text);
+              elLoader.style.display = 'none';
+              alert('Nie udało się pobrać ulubionych (błąd serwera).');
+              return;
+            }
+
+            const data = await r.json();
+            favTotal = data?.total ?? 0;
+
+            const items = data?.items ?? [];
+            if (favPage === 1 && favTotal === 0) {
+              // pierwsze ładowanie i pusto – pokaż „pusty” stan, wyczyść kontener
+              elWrap.innerHTML = '';
+              favLoaded = 0;
+              updateMoreBtn();
+              return;
+            }
+
+            renderFavs(items);
+            favLoaded += items.length;
+            favPage++;
+
+            updateMoreBtn();
+          } catch (e) {
+            console.error(e);
+            alert('Błąd połączenia podczas pobierania ulubionych.');
+          } finally {
+            elLoader.style.display = 'none';
+          }
+        }
+
+        function renderFavs(items) {
+          items.forEach(clip => {
+            const safeTitle = String(clip.title ?? '').replace(/"/g, '&quot;');
+            const publicUrl = getPublicClipUrl(clip).replace(/&/g,'&amp;');
+            const embedAttr = (clip.embedUrl ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+
+            const col = document.createElement('div');
+            col.className = "col-md-3 mb-4 d-flex";
+
+            col.innerHTML = `
+              <div class="card-shell w-100 h-100">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-thumb-wrap">
+                    <div class="clip-container" style="cursor:pointer;"
+                         onclick="showClipModal('${embedAttr}')">
+                      <img src="${clip.thumbnailUrl}" alt="${safeTitle}" class="card-img-top" />
+                    </div>
+                  </div>
+
+                  <div class="card-body d-flex flex-column">
+                    <h6 class="card-title mb-2">${safeTitle}</h6>
+
+                    <div class="card-footer-controls d-flex align-items-center justify-content-between mt-auto">
+                      <p class="card-text text-muted mb-0">Autor: ${clip.broadcasterName}</p>
+
+                      <div class="action-buttons d-flex gap-2">
+                        <!-- ⭐ -->
+                        <button class="fav-btn fav-btn--inline active"
+                                title="Usuń z ulubionych"
+                                data-clip-id="${clip.clipId}"
+                                data-title="${safeTitle}"
+                                data-thumb="${clip.thumbnailUrl}"
+                                data-bname="${clip.broadcasterName}"
+                                data-embed="${clip.embedUrl}">
+                          <svg class="fav-star" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62
+                                     2 9.24l5.46 4.73L5.82 21z"/>
+                          </svg>
+                        </button>
+
+                        <!-- 📋 -->
+                        <button class="copy-btn"
+                                title="Skopiuj link do klipa"
+                                data-clip-url="${publicUrl}">
+                          <svg class="copy-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+            elWrap.appendChild(col);
+          });
+        }
+
+        // delegacja kliknięć: ⭐ i kopiowanie
+        document.addEventListener('click', async (e) => {
+          const fav = e.target.closest('.fav-btn');
+          if (fav) {
+            e.preventDefault(); e.stopPropagation();
+            try { await toggleFavorite(fav); }
+            catch (err) { console.error(err); alert('Nie udało się zapisać ulubionego.'); }
+            return;
+          }
+
+          const copy = e.target.closest('.copy-btn');
+          if (copy) {
+            e.preventDefault(); e.stopPropagation();
+            const url = (copy.dataset.clipUrl || '').replace(/&amp;/g, '&');
+            try {
+              await navigator.clipboard.writeText(url);
+              copy.classList.add('ok');
+              copy.title = 'Skopiowano!';
+              setTimeout(() => { copy.classList.remove('ok'); copy.title = 'Skopiuj link do klipa'; }, 1200);
+            } catch {
+              alert('Nie udało się skopiować linku.');
+            }
+          }
+        });
+
+        elMore.addEventListener('click', loadFavPage);
+        window.addEventListener('DOMContentLoaded', loadFavPage);
+    </script>
+}

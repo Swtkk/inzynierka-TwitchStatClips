@@ -516,3 +516,95 @@ h1 {
         /* zostawiamy ich oryginalne duration – nic tu nie skracamy */
     }
 }
+
+
+.card-thumb-wrap {
+    position: relative;
+}
+
+.card-controls {
+    position: absolute;
+    left: .5rem;
+    right: .5rem;
+    bottom: .5rem;
+    display: none;
+    gap: .5rem;
+    justify-content: flex-end; /* gwiazdka + kopiuj przy prawej krawędzi */
+    z-index: 5;
+}
+
+.card-footer-controls {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 0.5rem;
+    margin-top: auto;
+}
+
+/* Gwiazdka */
+.fav-star {
+    width: 18px;
+    height: 18px;
+    fill: transparent;
+    stroke: #FFD166;
+    stroke-width: 2px;
+}
+
+.fav-btn.active .fav-star {
+    fill: #FFD166;
+}
+
+/* --- Ikona kopiowania --- */
+.copy-icon {
+    width: 16px;
+    height: 16px;
+    fill: #dfe6f0;
+}
+
+.copy-btn.ok {
+    box-shadow: 0 0 0 2px rgba(100, 221, 23, .6) inset;
+}
+
+/* Kopiuj */
+.copy-btn {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(0,0,0,.45);
+    border: 1px solid rgba(255,255,255,.15);
+    cursor: pointer;
+    transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+
+    .copy-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(0,0,0,.6);
+    }
+
+.copy-icon {
+    width: 18px;
+    height: 18px;
+    fill: #dfe6f0;
+}
+
+.copy-btn.ok {
+    box-shadow: 0 0 0 2px rgba(100, 221, 23, .6) inset;
+}
+.action-buttons button {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+    .action-buttons button:hover {
+        background: rgba(0,0,0,0.6);
+        transform: translateY(-1px);
+    }
+
+/* szybki feedback po skopiowaniu */

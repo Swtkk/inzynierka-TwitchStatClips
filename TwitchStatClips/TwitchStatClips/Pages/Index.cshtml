@@ -76,76 +76,244 @@
 
 @section Scripts {
     <script>
-        const gameName = "@Model.SelectedGame";
-        const period = "@selectedPeriod";
-        const clipsPerPage = 8;
-        let allClips = [];
-        let visibleClips = 0;
+        (() => {
+          const gameName = "@Model.SelectedGame";
+          const period = "@selectedPeriod";
+          const clipsPerPage = 8;
 
-        function showClipModal(embedUrl) {
+          let allClips = [];
+          let visibleClips = 0;
+
+          function showClipModal(embedUrl) {
             const modal = document.getElementById("clipModal");
             const iframe = document.getElementById("modalIframe");
             iframe.src = `${embedUrl}&parent=${location.hostname}`;
             modal.style.display = "flex";
-        }
+          }
+          window.showClipModal = showClipModal; // potrzebne dla onclick w HTML
 
-        function hideClipModal(event) {
+          function hideClipModal() {
             const modal = document.getElementById("clipModal");
             const iframe = document.getElementById("modalIframe");
             iframe.src = "";
             modal.style.display = "none";
-        }
+          }
+          window.hideClipModal = hideClipModal;
 
-                async function loadAllClipsOnce() {
-            const loader = document.getElementById("loader");
-            loader.style.display = "block";
-
-            const response = await fetch(`/api/clips?gameName=${encodeURIComponent(gameName)}&period=${period}`);
-            const data = await response.json();
-            allClips = data.clips;
-            visibleClips = 0;
-
-            document.getElementById("clips-container").innerHTML = "";
-            loader.style.display = "none";
-            renderMoreClips();
-        }
-
-
-        function renderMoreClips() {
-            const container = document.getElementById("clips-container");
-            const btn = document.getElementById("loadMoreBtn");
-
-            const nextClips = allClips.slice(visibleClips, visibleClips + clipsPerPage);
-            visibleClips += nextClips.length;
-
-                   nextClips.forEach(clip => {
-          const col = document.createElement("div");
-          // kolumna rozciąga się na wysokość i wyrównuje
-          col.className = "col-md-3 mb-4 d-flex";
-
-          col.innerHTML = `
-            <div class="card-shell w-100 h-100">
-              <div class="card h-100 shadow-sm">
-                <div class="clip-container" style="cursor:pointer;" onclick="showClipModal('${clip.embedUrl}')">
-                  <img src="${clip.thumbnailUrl}" alt="${clip.title}" class="card-img-top" />
-                </div>
-                <div class="card-body d-flex flex-column">
-                  <h6 class="card-title mb-2">${clip.title}</h6>
-                  <p class="card-text text-muted mb-0 mt-auto">Autor: ${clip.broadcasterName}</p>
-                </div>
-              </div>
-            </div>`;
-          container.appendChild(col);
-        });
-
-            if (visibleClips >= allClips.length) {
-                btn.style.display = "none";
+                        function getPublicClipUrl(clip) {
+                  if (clip.url) return clip.url;
+                  if (clip.embedUrl?.includes('embed?clip=')) {
+                    try {
+                      const id = new URL(clip.embedUrl).searchParams.get('clip');
+                      if (id) return `https://clips.twitch.tv/${id}`;
+                    } catch {}
+                  }
+                  if (clip.id) return `https://clips.twitch.tv/${clip.id}`;
+                  return '';
+                }
+          async function getFavoriteIds() {
+            try {
+              const r = await fetch('/api/favorites/ids');
+              if (!r.ok) return []; // 401/403 -> brak gwiazdek
+              return await r.json();
+            } catch {
+              return [];
             }
+          }
+
+                   async function toggleFavorite(btn) {
+          if (btn.dataset.busy === '1') return;
+          btn.dataset.busy = '1';
+
+          try {
+            const payload = {
+              clipId: btn.dataset.clipId,
+              title: btn.dataset.title,
+              thumbnailUrl: btn.dataset.thumb,
+              broadcasterName: btn.dataset.bname,
+              embedUrl: btn.dataset.embed
+            };
+
+            const r = await fetch('/api/favorites/toggle', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify(payload),
+              cache: 'no-store'
+            });
+
+            if (!r.ok) {
+              const text = await r.text();
+              console.error('toggle error', r.status, text);
+              alert('Nie udało się zapisać ulubionego.');
+              return;
+            }
+
+            const data = await r.json();
+
+            // tylko przełączamy stan/tytuł – NIC nie usuwamy z DOM na Indexie
+            btn.classList.toggle('active', !!data.isFavorite);
+            btn.title = data.isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych';
+          } finally {
+            delete btn.dataset.busy;
+          }
         }
 
 
 
-        document.getElementById("loadMoreBtn").addEventListener("click", renderMoreClips);
-        window.addEventListener("DOMContentLoaded", loadAllClipsOnce);
+                  // delegacja kliknięcia na gwiazdkę (rejestrujemy RAZ)
+          document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.fav-btn');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFavorite(btn);
+          });
+
+          async function loadAllClipsOnce() {
+            const loader = document.getElementById("loader");
+            const container = document.getElementById("clips-container");
+            loader.style.display = "block";
+            container.innerHTML = "";
+
+            try {
+              const url = `/api/clips?gameName=${encodeURIComponent(gameName)}&period=${encodeURIComponent(period)}`;
+              const response = await fetch(url);
+              if (!response.ok) {
+                throw new Error(`API /api/clips zwróciło ${response.status}`);
+              }
+              const data = await response.json();
+              if (!data || !Array.isArray(data.clips)) {
+                throw new Error("Nieoczekiwany format odpowiedzi (brak pola 'clips').");
+              }
+              allClips = data.clips;
+              visibleClips = 0;
+              await renderMoreClips();
+            } catch (err) {
+              console.error(err);
+              loader.innerHTML = `<div class="text-danger">Nie udało się pobrać klipów.</div>`;
+            } finally {
+              loader.style.display = "none";
+            }
+          }
+
+                   async function renderMoreClips() {
+          const container = document.getElementById("clips-container");
+          const btn = document.getElementById("loadMoreBtn");
+          const isLoggedIn = window.isLoggedIn === true;
+
+          if (!Array.isArray(allClips) || allClips.length === 0) {
+            btn.style.display = "none";
+            return;
+          }
+
+          const nextClips = allClips.slice(visibleClips, visibleClips + clipsPerPage);
+          visibleClips += nextClips.length;
+
+          // pobierz ulubione tylko gdy zalogowany
+          const favIds = new Set(isLoggedIn ? await getFavoriteIds() : []);
+
+          nextClips.forEach(clip => {
+            const isFav = isLoggedIn && favIds.has(clip.id);
+            const col = document.createElement("div");
+            col.className = "col-md-3 mb-4 d-flex";
+
+            const safeTitle = String(clip.title ?? "").replace(/"/g, '&quot;');
+            const publicUrl = getPublicClipUrl(clip); // ← tu, dla tego klipu
+            const publicUrlAttr = publicUrl.replace(/&/g, '&amp;');
+
+            const favButtonHtml = isLoggedIn ? `
+              <button class="fav-btn ${isFav ? 'active' : ''}"
+                      title="${isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}"
+                      data-clip-id="${clip.id}"
+                      data-title="${safeTitle}"
+                      data-thumb="${clip.thumbnailUrl}"
+                      data-bname="${clip.broadcasterName}"
+                      data-embed="${clip.embedUrl}">
+                <svg class="fav-star" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62
+                           2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+              </button>` : ``;
+
+            col.innerHTML = `
+              <div class="card-shell w-100 h-100">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-thumb-wrap">
+                    <div class="clip-container" style="cursor:pointer;"
+                         onclick="showClipModal('${clip.embedUrl}')">
+                      <img src="${clip.thumbnailUrl}" alt="${safeTitle}" class="card-img-top" />
+                    </div>
+                  </div>
+
+                  <div class="card-body d-flex flex-column">
+                    <h6 class="card-title mb-2">${safeTitle}</h6>
+                    <div class="card-footer-controls d-flex align-items-center justify-content-between mt-auto">
+                      <p class="card-text text-muted mb-0">Autor: ${clip.broadcasterName}</p>
+                      <div class="action-buttons d-flex gap-2">
+                        ${favButtonHtml}
+                        <button class="copy-btn"
+                                title="Skopiuj link do klipa"
+                                data-clip-url="${publicUrlAttr}">
+                          <svg class="copy-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+
+            container.appendChild(col);
+          });
+
+          // ukryj przycisk jeśli doszliśmy do końca
+          btn.style.display = visibleClips >= allClips.length ? "none" : "inline-block";
+        }
+
+          document.getElementById("loadMoreBtn").addEventListener("click", () => {
+            renderMoreClips().catch(console.error);
+          });
+
+          document.addEventListener('click', async (e) => {
+  // GWIAZDKA
+  const fav = e.target.closest('.fav-btn');
+  if (fav) {
+    e.preventDefault(); e.stopPropagation();
+    try {
+      await toggleFavorite(fav);
+    } catch (err) {
+      console.error(err);
+      alert('Nie udało się zapisać ulubionego.');
+    }
+    return;
+  }
+
+  // KOPIUJ LINK
+  const copy = e.target.closest('.copy-btn');
+  if (copy) {
+    e.preventDefault(); e.stopPropagation();
+    const url = copy.dataset.clipUrl?.replace(/&amp;/g, '&') ?? '';
+    try {
+      await navigator.clipboard.writeText(url);
+      copy.classList.add('ok');
+      copy.title = 'Skopiowano!';
+      setTimeout(() => { copy.classList.remove('ok'); copy.title = 'Skopiuj link do klipa'; }, 1200);
+    } catch {
+      // fallback: input + execCommand (rzadko potrzebny na localhost)
+      alert('Nie udało się skopiować linku.');
+    }
+  }
+});
+
+
+
+
+
+
+          window.addEventListener("DOMContentLoaded", () => {
+            loadAllClipsOnce().catch(console.error);
+          });
+        })();
     </script>
 }

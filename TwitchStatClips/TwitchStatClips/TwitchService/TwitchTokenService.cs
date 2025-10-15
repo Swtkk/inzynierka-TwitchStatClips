@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace TwitchStatClips.TwitchService
@@ -9,9 +10,14 @@ namespace TwitchStatClips.TwitchService
         private TwitchAuthToken? _currentToken;
         private readonly object _lock = new();
         private readonly IMemoryCache _cache;
+        private readonly IHttpClientFactory _httpFactory;  
+        private readonly IConfiguration _cfg;
 
-        public TwitchTokenService(IConfiguration config, IMemoryCache cache)
+        public TwitchTokenService(IConfiguration config, IMemoryCache cache, IHttpClientFactory httpFactory,
+        IConfiguration cfg)
         {
+            _httpFactory = httpFactory;
+            _cfg = cfg;
             _config = config;
             _cache = cache;
         }
@@ -415,5 +421,48 @@ namespace TwitchStatClips.TwitchService
                 Console.WriteLine($"  {property.Name}: {property.Value}");
             }
         }
+
+        public async Task<(string AccessToken, string RefreshToken, int ExpiresIn)?> ExchangeAuthorizationCodeAsync(string code, string redirectUri)
+        {
+            var clientId = _cfg["Twitch:ClientId"];
+            var clientSecret = _cfg["Twitch:ClientSecret"];
+
+            var content = new FormUrlEncodedContent(new[]
+            {
+        new KeyValuePair<string,string>("client_id", clientId),
+        new KeyValuePair<string,string>("client_secret", clientSecret),
+        new KeyValuePair<string,string>("code", code),
+        new KeyValuePair<string,string>("grant_type", "authorization_code"),
+        new KeyValuePair<string,string>("redirect_uri", redirectUri),
+    });
+
+            using var http = _httpFactory.CreateClient();
+            var resp = await http.PostAsync("https://id.twitch.tv/oauth2/token", content);
+            if (!resp.IsSuccessStatusCode) return null;
+
+            var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
+            return (json.GetProperty("access_token").GetString()!,
+                    json.GetProperty("refresh_token").GetString()!,
+                    json.GetProperty("expires_in").GetInt32());
+        }
+
+        public async Task<(string Id, string Name, string AvatarUrl)>
+    GetUserInfoAsync(string accessToken)
+        {
+            using var http = _httpFactory.CreateClient();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", accessToken);
+            http.DefaultRequestHeaders.Add("Client-Id", _cfg["Twitch:ClientId"]);
+
+            var json = await http.GetFromJsonAsync<JsonElement>("https://api.twitch.tv/helix/users");
+            var data = json.GetProperty("data")[0];
+
+            return (
+                data.GetProperty("id").GetString()!,
+                data.GetProperty("display_name").GetString() ?? "",
+                data.GetProperty("profile_image_url").GetString() ?? ""
+            );
+        }
+
     }
-    }
+}
