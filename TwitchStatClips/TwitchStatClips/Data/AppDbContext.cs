@@ -10,7 +10,8 @@ namespace TwitchStatClips.Data
         public AppDbContext(DbContextOptions<AppDbContext> opts) : base(opts) { }
 
         public DbSet<FavoriteClip> Favorites => Set<FavoriteClip>();
-
+        public DbSet<GetStats> GetStats => Set<GetStats>();
+        public DbSet<LatestAvatarPerChannel> LatestAvatarPerChannel => Set<LatestAvatarPerChannel>();
         protected override void OnModelCreating(ModelBuilder b)
         {
             b.Entity<FavoriteClip>()
@@ -20,6 +21,9 @@ namespace TwitchStatClips.Data
             b.Entity<FavoriteClip>()
              .Property(x => x.CreatedAt)
              .HasDefaultValueSql("SYSUTCDATETIME()");
+
+            b.Entity<GetStats>().HasNoKey();
+            b.Entity<LatestAvatarPerChannel>().HasNoKey();
         }
     }
 }

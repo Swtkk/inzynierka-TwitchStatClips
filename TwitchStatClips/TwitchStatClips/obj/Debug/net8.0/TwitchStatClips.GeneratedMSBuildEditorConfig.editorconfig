@@ -1,5 +1,7 @@
 is_global = true
 build_property.TargetFramework = net8.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v8.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
 build_property.ProjectTypeGuids = 
@@ -52,12 +54,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9HYW1lRHJvcGRvd24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Shared/_StatsTable.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9TdGF0c1RhYmxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Tools/FavoriteClips.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9vbHNcRmF2b3JpdGVDbGlwcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Tools/StreamerStatsAll.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9vbHNcU3RyZWFtZXJTdGF0c0FsbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Tools/UserLookup.cshtml]

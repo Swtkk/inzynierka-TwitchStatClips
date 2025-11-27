@@ -608,3 +608,48 @@ h1 {
     }
 
 /* szybki feedback po skopiowaniu */
+/* Statystyki streamerów */
+.stats-table {
+    color: #f5f5f5;
+    font-size: 0.9rem;
+    border-collapse: separate;
+    border-spacing: 0 2px;
+}
+
+    .stats-table thead th {
+        border-bottom: 1px solid rgba(255,255,255,0.25);
+        color: #ffffff;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    .stats-table tbody tr {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+
+        .stats-table tbody tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .stats-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.10);
+        }
+
+    .stats-table td,
+    .stats-table th {
+        border-top: none !important;
+        border-bottom: none !important;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+/* Avatar w tabeli */
+
+
+.stats-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}

@@ -1,0 +1,139 @@
+﻿@model IEnumerable<TwitchStatClips.Models.GetStats>
+@using Microsoft.AspNetCore.Html
+
+@{
+    // Potrzebujemy dostępu do ViewData z sortowaniem
+    var vm = (TwitchStatClips.Models.ViewModels.StatsPageViewModel)ViewData["StatsVm"];
+}
+
+<table class="table table-sm stats-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Channel</th>
+
+            @* Średnia widzów *@
+            <th>
+                <a asp-page="./StreamerStatsAll"
+                   asp-route-range="@vm.Range"
+                   asp-route-pageNumber="1"
+                   asp-route-pageSize="@vm.PageSize"
+                   asp-route-sortBy="avg"
+                   asp-route-sortDir="@(vm.SortBy=="avg" ? (vm.SortDir=="desc" ? "asc" : "desc") : "desc")"
+                   asp-route-language="@vm.Language"
+                   asp-route-game="@vm.Game">
+                    Śr. widzów @SortIcon("avg", vm.SortBy, vm.SortDir)
+                </a>
+            </th>
+
+            @* Maks widzów *@
+            <th>
+                <a asp-page="./StreamerStatsAll"
+                   asp-route-range="@vm.Range"
+                   asp-route-pageNumber="1"
+                   asp-route-pageSize="@vm.PageSize"
+                   asp-route-sortBy="max"
+                   asp-route-sortDir="@(vm.SortBy=="max" ? (vm.SortDir=="desc" ? "asc" : "desc") : "desc")"
+                   asp-route-language="@vm.Language"
+                   asp-route-game="@vm.Game"
+                    >
+                    Maks. widzów @SortIcon("max", vm.SortBy, vm.SortDir)
+                </a>
+            </th>
+
+            @* Minuty live – bez sortowania (jak chcesz, dorobimy) *@
+            <th>Minuty live</th>
+
+            @* Godziny oglądania *@
+            <th>
+                <a asp-page="./StreamerStatsAll"
+                   asp-route-range="@vm.Range"
+                   asp-route-pageNumber="1"
+                   asp-route-pageSize="@vm.PageSize"
+                   asp-route-sortBy="hours"
+                   asp-route-sortDir="@(vm.SortBy=="hours" ? (vm.SortDir=="desc" ? "asc" : "desc") : "desc")"
+                   asp-route-language="@vm.Language"
+                   asp-route-game="@vm.Game"
+                    >
+                    Godziny oglądania @SortIcon("hours", vm.SortBy, vm.SortDir)
+                </a>
+            </th>
+
+            @* Aktualni widzowie *@
+            <th>
+                <a asp-page="./StreamerStatsAll"
+                   asp-route-range="@vm.Range"
+                   asp-route-pageNumber="1"
+                   asp-route-pageSize="@vm.PageSize"
+                   asp-route-sortBy="current"
+                   asp-route-sortDir="@(vm.SortBy=="current" ? (vm.SortDir=="desc" ? "asc" : "desc") : "desc")"
+                   asp-route-language="@vm.Language"
+                   asp-route-game="@vm.Game">
+                    Aktualni widzowie @SortIcon("current", vm.SortBy, vm.SortDir)
+                </a>
+            </th>
+
+            @* Obserwujący (ostatnio) *@
+            <th>
+                <a asp-page="./StreamerStatsAll"
+                   asp-route-range="@vm.Range"
+                   asp-route-pageNumber="1"
+                   asp-route-pageSize="@vm.PageSize"
+                   asp-route-sortBy="followers"
+                   asp-route-sortDir="@(vm.SortBy=="followers" ? (vm.SortDir=="desc" ? "asc" : "desc") : "desc")"
+                   asp-route-language="@vm.Language"
+                   asp-route-game="@vm.Game"
+                    >
+                    Obserwujący (ostatnio) @SortIcon("followers", vm.SortBy, vm.SortDir)
+                </a>
+            </th>
+
+            <th>Ostatnio widziany</th>
+            <th>Język</th>
+            <th>Gra</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var i = (vm.PageNumber - 1) * vm.PageSize + 1;
+            foreach (var s in Model)
+            {
+                var avatarUrl = string.IsNullOrWhiteSpace(s.AvatarUrl)
+                ? Url.Content("~/img/avatar-placeholder.png") // domyślny obrazek
+                : s.AvatarUrl;
+
+                <tr>
+                    <td>@i</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="@avatarUrl"
+                                 alt="@s.ChannelLogin avatar"
+                                 class="stats-avatar" />
+                            <span>@s.ChannelLogin</span>
+                        </div>
+                    </td>
+                    <td>@s.AvgViewers.ToString("N0")</td>
+                    <td>@s.MaxViewers.ToString("N0")</td>
+                    <td>@s.MinutesStreamed.ToString("N0")</td>
+                    <td>@s.HoursWatched.ToString("N0")</td>
+                    <td>@(s.CurrentViewers?.ToString("N0") ?? "-")</td>
+                    <td>@(s.FollowersLatest?.ToString("N0") ?? "-")</td>
+                    <td>@s.LastSeenAt?.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@s.CurrentLanguage</td>
+                    <td>@s.CurrentGame</td>
+                </tr>
+                i++;
+            }
+        }
+    </tbody>
+</table>
+
+@functions {
+    IHtmlContent SortIcon(string col, string current, string dir)
+    {
+        if (col != current) return Html.Raw("");
+        return dir == "asc"
+            ? Html.Raw("▲")
+            : Html.Raw("▼");
+    }
+}

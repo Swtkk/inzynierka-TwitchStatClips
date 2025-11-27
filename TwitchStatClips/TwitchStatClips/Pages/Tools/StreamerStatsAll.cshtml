@@ -1,0 +1,155 @@
+﻿@page
+@model TwitchStatClips.Pages.Tools.StreamerStatsAllModel
+
+@{
+    ViewData["Title"] = "Statystyki streamerów";
+}
+
+<h2>Statystyki streamerów</h2>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(Model.Data.Range=="24h" ? "active" : "")"
+           asp-page="./StreamerStatsAll"
+           asp-route-range="24h"
+           asp-route-pageNumber="1"
+           asp-route-pageSize="@Model.Data.PageSize"
+           asp-route-sortBy="@Model.Data.SortBy"
+           asp-route-sortDir="@Model.Data.SortDir"
+           asp-route-language="@Model.Data.Language"
+           asp-route-game="@Model.Data.Game">
+            Ostatnie 24h
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.Data.Range=="7d" ? "active" : "")"
+           asp-page="./StreamerStatsAll"
+           asp-route-range="7d"
+           asp-route-pageNumber="1"
+           asp-route-pageSize="@Model.Data.PageSize"
+           asp-route-sortBy="@Model.Data.SortBy"
+           asp-route-sortDir="@Model.Data.SortDir"
+           asp-route-language="@Model.Data.Language"
+           asp-route-game="@Model.Data.Game">
+            Ostatnie 7d
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.Data.Range=="30d" ? "active" : "")"
+           asp-page="./StreamerStatsAll"
+           asp-route-range="30d"
+           asp-route-pageNumber="1"
+           asp-route-pageSize="@Model.Data.PageSize"
+           asp-route-sortBy="@Model.Data.SortBy"
+           asp-route-sortDir="@Model.Data.SortDir"
+           asp-route-language="@Model.Data.Language"
+           asp-route-game="@Model.Data.Game">
+            Ostatnie 30d
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.Data.Range=="all" ? "active" : "")"
+           asp-page="./StreamerStatsAll"
+           asp-route-range="all"
+           asp-route-pageNumber="1"
+           asp-route-pageSize="@Model.Data.PageSize"
+           asp-route-sortBy="@Model.Data.SortBy"
+           asp-route-sortDir="@Model.Data.SortDir"
+           asp-route-language="@Model.Data.Language"
+           asp-route-game="@Model.Data.Game">
+            Ogólne
+        </a>
+    </li>
+</ul>
+
+<form method="get" class="mb-2 d-flex align-items-center gap-2 flex-wrap">
+    <input type="hidden" name="range" value="@Model.Data.Range" />
+    <input type="hidden" name="pageNumber" value="1" />
+    <input type="hidden" name="sortBy" value="@Model.Data.SortBy" />
+    <input type="hidden" name="sortDir" value="@Model.Data.SortDir" />
+
+    <label class="text-light">Na stronę:</label>
+    <select name="pageSize"
+            class="form-select form-select-sm"
+            style="width:auto"
+            onchange="this.form.submit()">
+        <option value="50" selected="@(Model.Data.PageSize == 50)">50</option>
+        <option value="100" selected="@(Model.Data.PageSize == 100)">100</option>
+    </select>
+
+    <label class="text-light ms-3">Język:</label>
+    <select name="language"
+            class="form-select form-select-sm"
+            style="width:auto; max-width:120px;"
+            onchange="this.form.submit()">
+        <option value="">Wszystkie</option>
+        @foreach (var lang in Model.Data.LanguageOptions)
+        {
+            <option value="@lang" selected="@(Model.Data.Language == lang)">
+                @lang
+            </option>
+        }
+    </select>
+
+    <label class="text-light ms-3">Gra:</label>
+    <select name="game"
+            class="form-select form-select-sm"
+            style="width:200px; max-width:260px;"
+            onchange="this.form.submit()">
+        <option value="">Wszystkie</option>
+        @foreach (var g in Model.Data.GameOptions)
+        {
+            <option value="@g" selected="@(Model.Data.Game == g)">
+                @g
+            </option>
+        }
+    </select>
+</form>
+
+
+@{
+    // to jest JEDYNE miejsce, gdzie rysujemy tabelę
+    ViewData["StatsVm"] = Model.Data;
+}
+@await Html.PartialAsync("_StatsTable", Model.Data.Items)
+
+@if (Model.Data.TotalPages > 1)
+{
+    <nav aria-label="Paginacja">
+        <ul class="pagination mt-3">
+            <li class="page-item @(Model.Data.PageNumber == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-page="./StreamerStatsAll"
+                   asp-route-range="@Model.Data.Range"
+                   asp-route-pageNumber="@(Model.Data.PageNumber - 1)"
+                   asp-route-pageSize="@Model.Data.PageSize"
+                   asp-route-sortBy="@Model.Data.SortBy"
+                   asp-route-sortDir="@Model.Data.SortDir"
+                   asp-route-language="@Model.Data.Language"
+                   asp-route-game="@Model.Data.Game">
+                    « Poprzednia
+                </a>
+            </li>
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Strona @Model.Data.PageNumber z @Model.Data.TotalPages
+                </span>
+            </li>
+
+            <li class="page-item @(Model.Data.PageNumber == Model.Data.TotalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-page="./StreamerStatsAll"
+                   asp-route-range="@Model.Data.Range"
+                   asp-route-pageNumber="@(Model.Data.PageNumber + 1)"
+                   asp-route-pageSize="@Model.Data.PageSize"
+                   asp-route-sortBy="@Model.Data.SortBy"
+                   asp-route-sortDir="@Model.Data.SortDir"
+                   asp-route-language="@Model.Data.Language"
+                   asp-route-game="@Model.Data.Game">
+                    Następna »
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

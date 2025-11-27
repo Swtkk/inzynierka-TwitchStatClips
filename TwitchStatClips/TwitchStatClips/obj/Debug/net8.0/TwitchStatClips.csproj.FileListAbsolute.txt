@@ -148,3 +148,4 @@ C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\bin\Debug\net8.0\Mic
 C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\bin\Debug\net8.0\System.Security.Cryptography.Xml.dll
 C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\marci\source\repos\TwitchStatClips\TwitchStatClips\obj\Debug\net8.0\swae.build.ex.cache

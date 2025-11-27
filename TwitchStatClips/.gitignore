@@ -1,0 +1,42 @@
+## Visual Studio
+.vs/
+*.user
+*.suo
+
+## Build results
+bin/
+obj/
+Debug/
+Release/
+
+## Rider
+.idea/
+
+## NuGet
+*.nupkg
+packages/
+*.snupkg
+
+## Logs
+*.log
+
+## Temporary files
+*.tmp
+*.temp
+*.cache/
+
+## Visual Studio Cache files
+*.db
+*.db-wal
+*.db-shm
+
+## Others
+*.pid
+*.pdb
+
+## Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+## Publish output
+publish/
