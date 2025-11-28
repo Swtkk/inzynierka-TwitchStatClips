@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TwitchStatClips.TwitchService
 {
@@ -464,5 +465,128 @@ namespace TwitchStatClips.TwitchService
             );
         }
 
+
+        // ====== MODELE DLA /users i /streams ======
+
+        public class TwitchUserResponse
+        {
+            [JsonPropertyName("data")]
+            public List<TwitchUser> Data { get; set; } = new();
+        }
+
+        public class TwitchUser
+        {
+            [JsonPropertyName("id")]
+            public string Id { get; set; } = default!;
+
+            [JsonPropertyName("login")]
+            public string Login { get; set; } = default!;
+
+            [JsonPropertyName("display_name")]
+            public string Display_Name { get; set; } = default!;
+
+            [JsonPropertyName("profile_image_url")]
+            public string Profile_Image_Url { get; set; } = default!;
+
+            [JsonPropertyName("offline_image_url")]
+            public string Offline_Image_Url { get; set; } = default!;
+        }
+
+        public class TwitchStreamResponse
+        {
+            [JsonPropertyName("data")]
+            public List<TwitchStream> Data { get; set; } = new();
+        }
+
+        public class TwitchStream
+        {
+            [JsonPropertyName("id")]
+            public string Id { get; set; } = default!;
+
+            [JsonPropertyName("user_id")]
+            public string User_Id { get; set; } = default!;
+
+            [JsonPropertyName("user_login")]
+            public string User_Login { get; set; } = default!;
+
+            [JsonPropertyName("title")]
+            public string Title { get; set; } = default!;
+
+            [JsonPropertyName("type")]
+            public string Type { get; set; } = default!; // "live" albo ""
+
+            [JsonPropertyName("viewer_count")]
+            public int Viewer_Count { get; set; }
+
+            [JsonPropertyName("thumbnail_url")]
+            public string Thumbnail_Url { get; set; } = default!;
+
+            [JsonPropertyName("started_at")]
+            public DateTime Started_At { get; set; }
+        }
+
+        // w TwitchTokenService
+
+        public Task<TwitchUser?> GetUserByLoginAsync(string login)
+    => GetUserAsync(login);
+
+        public async Task<TwitchStream?> GetStreamByLoginAsync(string login)
+        {
+            var token = await EnsureTokenAsync();   // jeśli już dodałeś helper, inaczej GetToken()
+            if (token == null) return null;
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            client.DefaultRequestHeaders.Add("Client-Id", _config["Twitch:ClientId"]);
+
+            var url = $"https://api.twitch.tv/helix/streams?user_login={Uri.EscapeDataString(login)}";
+            Console.WriteLine($"[Twitch] GET {url}");
+
+            var response = await client.GetAsync(url);
+            Console.WriteLine($"[Twitch] Status: {(int)response.StatusCode} {response.StatusCode}");
+
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[Twitch] Body: {json}");
+
+            var data = JsonSerializer.Deserialize<TwitchStreamResponse>(json);
+            return data?.Data.FirstOrDefault();
+        }
+
+
+
+        public async Task<TwitchUser?> GetUserAsync(string login)
+        {
+            var token = await EnsureTokenAsync();
+            if (token == null) return null;
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            client.DefaultRequestHeaders.Add("Client-Id", _config["Twitch:ClientId"]);
+
+            var resp = await client.GetAsync(
+                $"https://api.twitch.tv/helix/users?login={Uri.EscapeDataString(login)}");
+
+            resp.EnsureSuccessStatusCode();
+
+            var json = await resp.Content.ReadAsStringAsync();
+            var data = JsonSerializer.Deserialize<TwitchUserResponse>(json);
+
+            return data?.Data.FirstOrDefault();
+        }
+
+        private async Task<TwitchAuthToken?> EnsureTokenAsync()
+        {
+            var token = GetToken();
+
+            // jeśli brak albo wygasł – pobierz nowy
+            if (token == null || token.IsExpired)
+            {
+                await RequestAppTokenAsync();
+                token = GetToken();
+            }
+
+            return token;
+        }
     }
 }
+

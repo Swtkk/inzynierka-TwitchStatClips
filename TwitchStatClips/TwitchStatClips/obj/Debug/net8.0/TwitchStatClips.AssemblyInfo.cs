@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TwitchStatClips")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+22c5d448d259a44b390fea79a9afa32be77ec9d0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7dd3e8b962da95e2e364c881462f5404f5bd4ed4")]
 [assembly: System.Reflection.AssemblyProductAttribute("TwitchStatClips")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TwitchStatClips")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,160 @@
+﻿@page "{channel}"
+@model TwitchStatClips.Pages.Tools.StreamerStatsModel
+@{
+    ViewData["Title"] = $"Statystyki streamera {Model.Data.ChannelLogin}";
+}
+
+<div class="streamer-header d-flex gap-4 align-items-center mb-4">
+
+    <img src="@Model.Data.AvatarUrl" class="streamer-avatar" />
+
+    <div>
+        <h1 class="streamer-name">@Model.Data.ChannelLogin</h1>
+       
+            <a href="/Tools/StreamerStatsAll" class="btn btn-twitch-back btn-sm">
+                Powrót
+            </a>
+        <a class="btn btn-primary btn-sm"
+           href="https://twitch.tv/@Model.Data.ChannelLogin" target="_blank">
+            Przejdź do kanału
+        </a>
+
+        @* Ogólny licznik obserwujących z „all time” *@
+        @if (Model.Data.FollowersAll?.FollowersTotalNow is not null)
+        {
+            <div class="streamer-followers mt-2">
+                ⭐ @Model.Data.FollowersAll.FollowersTotalNow?.ToString("N0") obserwujących
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Zakładki zakresów -->
+<ul class="nav nav-tabs mb-4 stats-tabs">
+    @foreach (var r in new[] { "24h", "7d", "30d", "all" })
+    {
+        <li class="nav-item">
+            <a class="nav-link @(Model.Data.Range == r ? "active" : "")"
+               asp-page="./StreamerStats"
+               asp-route-channel="@Model.Data.ChannelLogin"
+               asp-route-range="@r">
+                @Model.DisplayRange(r)
+            </a>
+        </li>
+    }
+</ul>
+
+@{
+    // aktywne statystyki oglądalności
+    var s = Model.GetActiveStats();
+    // aktywna lista gier
+    var games = Model.GetActiveGames();
+
+    // aktywny zestaw followersów
+    TwitchStatClips.Models.GetFollowers? f = Model.Data.Range switch
+    {
+        "7d" => Model.Data.Followers7d,
+        "30d" => Model.Data.Followers30d,
+        "all" => Model.Data.FollowersAll,
+        _ => Model.Data.Followers24h
+    };
+
+    // różnica followersów względem poprzedniego okresu
+    int? diff = Model.CalculateFollowersDiff();
+    string diffText = diff is null ? "-" :
+        (diff > 0 ? $"+{diff.Value:N0}" : diff.Value.ToString("N0"));
+    string diffClass = diff switch
+    {
+        > 0 => "text-success",
+        < 0 => "text-danger",
+        _ => "text-muted"
+    };
+}
+
+
+@if (s is null)
+{
+    <p class="text-muted">Brak danych dla tego zakresu.</p>
+}
+else
+{
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-label">👥 Śr. widzów</div>
+            <div class="stat-value">@s.AvgViewers.ToString("N0")</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">🔥 Maks. widzów</div>
+            <div class="stat-value">@s.MaxViewers.ToString("N0")</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">⏱ Godziny oglądania</div>
+            <div class="stat-value">@s.HoursWatched.ToString("N0")</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">🎮 Minuty live</div>
+            <div class="stat-value">@s.MinutesStreamed.ToString("N0")</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">👀 Aktualni widzowie</div>
+            <div class="stat-value">@((s.CurrentViewers?.ToString("N0")) ?? "-")</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">⭐ Obserwujący (łącznie)</div>
+            <div class="stat-value">
+                @(f?.FollowersTotalNow?.ToString("N0") ?? "-")
+            </div>
+            <div class="stat-diff @diffClass">
+                @diffText
+            </div>
+        </div>
+
+    </div>
+    <h3 class="mt-5 mb-3">Aktualny stream</h3>
+
+    @if (Model.Data.IsLive && !string.IsNullOrEmpty(Model.Data.ChannelLogin))
+    {
+        <div class="stream-player stream-player--online">
+            <iframe src="https://player.twitch.tv/?channel=@Model.Data.ChannelLogin&parent=localhost"
+                    frameborder="0"
+                    allowfullscreen="true"
+                    scrolling="no"
+                    class="stream-player-frame">
+            </iframe>
+        </div>
+    }
+    else
+    {
+        <div class="stream-player stream-player--offline">
+            <p>Stream jest obecnie offline.</p>
+        </div>
+    }
+    <h3 class="mt-5">Gry w wybranym okresie</h3>
+
+    <div class="game-grid">
+        @foreach (var item in Model.ParseGameList(games))
+        {
+            <div class="game-card">
+                <img src="@Model.GetGameImage(item.Name)" class="game-img" />
+                <div class="game-info">
+                    <div class="game-title">@item.Name</div>
+                    <div class="game-time">@item.Minutes min</div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .stat-diff {
+        font-size: 0.9rem;
+        margin-top: 4px;
+        opacity: 0.9;
+    }
+</style>

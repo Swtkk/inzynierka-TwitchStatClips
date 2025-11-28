@@ -653,3 +653,218 @@ h1 {
     object-fit: cover;
     box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
 }
+
+.stats-avatar-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+
+/* XXXXXX */
+
+.streamer-header {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.streamer-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.streamer-name {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.streamer-followers {
+    color: #ffdd57;
+    font-size: 1.1rem;
+}
+
+
+.stats-tabs .active {
+    background: #6441A5;
+    color: white !important;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: #1d1d2e;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0005;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+.game-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+}
+
+.game-card {
+    display: flex;
+    gap: 15px;
+    background: #1a1a28;
+    padding: 12px;
+    border-radius: 10px;
+    align-items: center;
+}
+
+.game-img {
+    width: 70px;
+    border-radius: 8px;
+}
+
+.game-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.game-time {
+    opacity: 0.7;
+}
+
+/* Ogólny wygląd linków zakładek */
+.stats-tabs .nav-link {
+    font-weight: 600;
+    padding: 10px 16px;
+    border: none;
+    color: #bbb;
+}
+
+    /* STAN AKTYWNY – musi nadpisać Bootstrap */
+    .stats-tabs .nav-link.active {
+        background: #6441A5; /* fiolet Twitcha */
+        color: #fff !important;
+        border-radius: 10px 10px 0 0;
+    }
+
+/* Usuń dolny border z ul, żeby nie przebijał */
+.stats-tabs {
+    border-bottom: 1px solid #333;
+}
+
+.btn-twitch-back {
+    background: #9146FF;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+
+    .btn-twitch-back:hover {
+        background: #A970FF;
+        color: #fff;
+    }
+
+.stream-title {
+    margin-top: 60px !important; /* odstęp nad napisem "Aktualny stream" */
+}
+
+.stream-section {
+    margin-top: 40px !important; /* odstęp między kafelkami a oknem streama */
+    padding-top: 20px;
+}
+
+.stream-player iframe {
+    border-radius: 18px;
+}
+
+.stream-offline-box {
+    min-height: 350px;
+    background: rgba(255,255,255,0.03);/* Wspólny kontener */
+.stream-player {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    border-radius: 24px;
+    overflow: hidden;
+    background: radial-gradient(circle at top, #26284f, #050510);
+}
+
+/* ONLINE – pełny player 16:9 */
+.stream-player--online .stream-player-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: block;
+}
+
+/* OFFLINE – mniejsze pudełko z tekstem */
+.stream-player--offline {
+    min-height: 260px;          /* tu regulujesz wysokość okna offline */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b5b8ff;
+    font-size: 1.1rem;
+}
+
+/* Jeśli pokazujesz obrazek offline z Twitcha zamiast tekstu: */
+.stream-player--offline img {
+    width: 100%;
+    max-height: 260px;          /* nie rośnie wyżej */
+    object-fit: cover;
+    display: block;
+}
+
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Wspólny kontener */
+.stream-player {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    border-radius: 24px;
+    overflow: hidden;
+    background: radial-gradient(circle at top, #26284f, #050510);
+}
+
+/* ONLINE – pełny player 16:9 */
+.stream-player--online .stream-player-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: block;
+}
+
+/* OFFLINE – mniejsze pudełko z tekstem */
+.stream-player--offline {
+    min-height: 260px; /* tu regulujesz wysokość okna offline */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b5b8ff;
+    font-size: 1.1rem;
+}
+
+    /* Jeśli pokazujesz obrazek offline z Twitcha zamiast tekstu: */
+    .stream-player--offline img {
+        width: 100%;
+        max-height: 260px; /* nie rośnie wyżej */
+        object-fit: cover;
+        display: block;
+    }

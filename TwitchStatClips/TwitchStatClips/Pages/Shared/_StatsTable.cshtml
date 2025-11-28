@@ -109,7 +109,11 @@
                             <img src="@avatarUrl"
                                  alt="@s.ChannelLogin avatar"
                                  class="stats-avatar" />
-                            <span>@s.ChannelLogin</span>
+                            <a asp-page="./StreamerStats"
+                               asp-route-channel="@s.ChannelLogin"
+                               class="text-decoration-none text-light fw-semibold">
+                                @s.ChannelLogin
+                            </a>
                         </div>
                     </td>
                     <td>@s.AvgViewers.ToString("N0")</td>

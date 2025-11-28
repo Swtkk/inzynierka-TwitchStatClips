@@ -12,6 +12,8 @@ namespace TwitchStatClips.Data
         public DbSet<FavoriteClip> Favorites => Set<FavoriteClip>();
         public DbSet<GetStats> GetStats => Set<GetStats>();
         public DbSet<LatestAvatarPerChannel> LatestAvatarPerChannel => Set<LatestAvatarPerChannel>();
+        public DbSet<StreamGamesList> StreamGamesList => Set<StreamGamesList>();
+        public DbSet<GetFollowers> GetFollowers => Set<GetFollowers>();
         protected override void OnModelCreating(ModelBuilder b)
         {
             b.Entity<FavoriteClip>()
@@ -24,6 +26,8 @@ namespace TwitchStatClips.Data
 
             b.Entity<GetStats>().HasNoKey();
             b.Entity<LatestAvatarPerChannel>().HasNoKey();
+            b.Entity<StreamGamesList>().HasNoKey();
+            b.Entity<GetFollowers>().HasNoKey();
         }
     }
 }
