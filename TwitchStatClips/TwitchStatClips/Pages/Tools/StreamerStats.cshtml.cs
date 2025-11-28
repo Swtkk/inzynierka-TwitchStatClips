@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TwitchStatClips.Data;
 using TwitchStatClips.Models;
 using TwitchStatClips.Models.ViewModels;
@@ -12,18 +13,21 @@ namespace TwitchStatClips.Pages.Tools
     {
         private readonly AppDbContext _db;
         private readonly ILogger<StreamerStatsModel> _logger;
+        private readonly TwitchTokenService _twitch;
+        private readonly IMemoryCache _cache;
 
         public StreamerStatsViewModel Data { get; set; } = new();
 
-        private readonly TwitchTokenService _twitch;
-
-        public StreamerStatsModel(AppDbContext db,
-                                  ILogger<StreamerStatsModel> logger,
-                                  TwitchTokenService twitch)
+        public StreamerStatsModel(
+            AppDbContext db,
+            ILogger<StreamerStatsModel> logger,
+            TwitchTokenService twitch,
+            IMemoryCache cache)
         {
             _db = db;
             _logger = logger;
             _twitch = twitch;
+            _cache = cache;
         }
 
         public async Task<IActionResult> OnGetAsync(string channel, string range = "24h")
@@ -33,15 +37,27 @@ namespace TwitchStatClips.Pages.Tools
 
             range = (range ?? "24h").ToLowerInvariant();
 
+            // ===== 1. Spróbuj z cache =====
+            var cacheKey = $"streamer_stats_{channel.ToLowerInvariant()}";
+
+            if (_cache.TryGetValue(cacheKey, out StreamerStatsViewModel cached))
+            {
+                // Mamy dane z cache – tylko ustawiamy aktywny zakres
+                Data = cached;
+                Data.Range = range;
+                return Page();
+            }
+
+            // ===== 2. Brak cache – pobieramy wszystko i zapisujemy =====
             try
             {
                 // 1. Dane u¿ytkownika z Twitcha (avatar, offline image)
-                var user = await _twitch.GetUserAsync(channel);   // <-- upewnij siê, ¿e u¿ywasz tej metody z TwitchTokenService
+                var user = await _twitch.GetUserAsync(channel);
                 var avatarUrl = user?.Profile_Image_Url ?? "/img/avatar-placeholder.png";
                 var offlineImage = user?.Offline_Image_Url;
 
                 // 2. Informacja o streamie (czy live + tytu³)
-                var stream = await _twitch.GetStreamByLoginAsync(channel); // Twoja metoda do /helix/streams
+                var stream = await _twitch.GetStreamByLoginAsync(channel);
                 bool isLive = stream != null;
                 string? streamTitle = stream?.Title;
 
@@ -93,6 +109,13 @@ namespace TwitchStatClips.Pages.Tools
                     Games30d        = games30,
                     GamesAll        = gamesAll
                 };
+
+                // Zapisujemy do cache na ~1 minutê
+                _cache.Set(cacheKey, Data,
+                    new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
+                    });
             }
             catch (Exception ex)
             {
@@ -103,6 +126,7 @@ namespace TwitchStatClips.Pages.Tools
             return Page();
         }
 
+        // ================== POMOCNICZE METODY ==================
 
         private async Task<GetStats?> GetStatsForRange(string channel, string viewName)
         {
@@ -121,9 +145,6 @@ namespace TwitchStatClips.Pages.Tools
                 .FirstOrDefaultAsync();
         }
 
-        // ----------- METODY, KTÓRYCH BRAKOWA£O -----------
-
-        // 1. Który zestaw statystyk jest aktywny (24h / 7d / 30d / all)
         public GetStats? GetActiveStats()
         {
             return Data.Range switch
@@ -135,7 +156,6 @@ namespace TwitchStatClips.Pages.Tools
             };
         }
 
-        // 2. Która lista gier jest aktywna
         public string? GetActiveGames()
         {
             return Data.Range switch
@@ -147,7 +167,6 @@ namespace TwitchStatClips.Pages.Tools
             };
         }
 
-        // 3. £adny tekst nazwy zak³adki
         public string DisplayRange(string r) => r switch
         {
             "24h" => "Ostatnie 24h",
@@ -157,7 +176,6 @@ namespace TwitchStatClips.Pages.Tools
             _ => r
         };
 
-        // 4. Parsowanie stringa "Just Chatting (336m), Counter-Strike (241m)" -> lista gier
         public IEnumerable<(string Name, int Minutes)> ParseGameList(string? games)
         {
             if (string.IsNullOrWhiteSpace(games))
@@ -168,12 +186,11 @@ namespace TwitchStatClips.Pages.Tools
             foreach (var part in games.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 var p = part.Trim();
-
                 var idx = p.LastIndexOf('(');
                 if (idx <= 0) continue;
 
                 var name = p[..idx].Trim();
-                var minutesPart = p[(idx + 1)..].Trim(); // np. "336m)"
+                var minutesPart = p[(idx + 1)..].Trim(); // "336m)"
 
                 minutesPart = minutesPart
                     .Replace("m)", "")
@@ -189,11 +206,10 @@ namespace TwitchStatClips.Pages.Tools
             return result;
         }
 
-        // 5. URL do grafiki gry z Twitcha
         public string GetGameImage(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return "/img/avatar-placeholder.png"; // mo¿esz zrobiæ osobny placeholder dla gier
+                return "/img/avatar-placeholder.png";
 
             var slug = name.Replace(" ", "%20");
             return $"https://static-cdn.jtvnw.net/ttv-boxart/{slug}-144x192.jpg";
@@ -204,6 +220,7 @@ namespace TwitchStatClips.Pages.Tools
             var query = _db.GetFollowers.FromSqlRaw($"SELECT * FROM dbo.{viewName}");
             return await query.FirstOrDefaultAsync(f => f.ChannelLogin == channel);
         }
+
         public int? CalculateFollowersDiff()
         {
             var r = Data.Range;
@@ -232,6 +249,5 @@ namespace TwitchStatClips.Pages.Tools
 
             return current.FollowersTotalNow.Value - prev.FollowersTotalNow.Value;
         }
-
     }
 }

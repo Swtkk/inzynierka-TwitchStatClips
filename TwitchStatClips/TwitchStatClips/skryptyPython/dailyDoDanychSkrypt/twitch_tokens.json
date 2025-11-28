@@ -1,0 +1,10 @@
+{
+  "access_token": "f46uckji270p13lc9406xady6rsl5k",
+  "expires_in": 13906,
+  "refresh_token": "xei7pfbx6rkouy51m0di5vt2curjptso7zt8ohs3dhbmysb2py",
+  "scope": [
+    "moderator:read:followers"
+  ],
+  "token_type": "bearer",
+  "obtained_at": 1760377661
+}

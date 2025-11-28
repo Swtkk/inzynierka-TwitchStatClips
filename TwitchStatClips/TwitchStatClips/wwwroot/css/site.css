@@ -868,3 +868,47 @@ h1 {
         object-fit: cover;
         display: block;
     }
+
+/* ============================
+   FILTRY STATYSTYK STREAMERÓW
+   ============================ */
+
+.stats-filters {
+    margin: 25px 0;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: #d0d0e0;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.filter-select {
+    background: #1b1c2a;
+    border: 1px solid #30324a;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    min-width: 140px;
+    cursor: pointer;
+    transition: border-color .2s ease;
+}
+
+    .filter-select:hover {
+        border-color: #7f5cff;
+    }
+
+    .filter-select option {
+        background: #1b1c2a;
+        color: #fff;
+    }

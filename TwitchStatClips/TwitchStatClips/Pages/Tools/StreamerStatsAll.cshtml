@@ -62,49 +62,56 @@
     </li>
 </ul>
 
-<form method="get" class="mb-2 d-flex align-items-center gap-2 flex-wrap">
+<form method="get" class="stats-filters d-flex gap-3 flex-wrap align-items-end">
+
+    <!-- Zakres (ukryty, zachowujemy wybór zakładki) -->
     <input type="hidden" name="range" value="@Model.Data.Range" />
-    <input type="hidden" name="pageNumber" value="1" />
     <input type="hidden" name="sortBy" value="@Model.Data.SortBy" />
     <input type="hidden" name="sortDir" value="@Model.Data.SortDir" />
 
-    <label class="text-light">Na stronę:</label>
-    <select name="pageSize"
-            class="form-select form-select-sm"
-            style="width:auto"
-            onchange="this.form.submit()">
-        <option value="50" selected="@(Model.Data.PageSize == 50)">50</option>
-        <option value="100" selected="@(Model.Data.PageSize == 100)">100</option>
-    </select>
+    <!-- Na stronę -->
+    <div class="filter-group">
+        <label class="filter-label">Na stronę:</label>
+        <select name="pageSize" class="filter-select" onchange="this.form.submit()">
+            @foreach (var size in new[] { 25, 50, 100 })
+            {
+                <option value="@size" selected="@(Model.Data.PageSize == size)">
+                    @size
+                </option>
+            }
+        </select>
+    </div>
 
-    <label class="text-light ms-3">Język:</label>
-    <select name="language"
-            class="form-select form-select-sm"
-            style="width:auto; max-width:120px;"
-            onchange="this.form.submit()">
-        <option value="">Wszystkie</option>
-        @foreach (var lang in Model.Data.LanguageOptions)
-        {
-            <option value="@lang" selected="@(Model.Data.Language == lang)">
-                @lang
-            </option>
-        }
-    </select>
+    <!-- Język -->
+    <div class="filter-group">
+        <label class="filter-label">Język:</label>
+        <select name="language" class="filter-select" onchange="this.form.submit()">
+            <option value="">Wszystkie</option>
+            @foreach (var lang in Model.Data.LanguageOptions)
+            {
+                <option value="@lang" selected="@(Model.Data.Language == lang)">
+                    @lang
+                </option>
+            }
+        </select>
+    </div>
 
-    <label class="text-light ms-3">Gra:</label>
-    <select name="game"
-            class="form-select form-select-sm"
-            style="width:200px; max-width:260px;"
-            onchange="this.form.submit()">
-        <option value="">Wszystkie</option>
-        @foreach (var g in Model.Data.GameOptions)
-        {
-            <option value="@g" selected="@(Model.Data.Game == g)">
-                @g
-            </option>
-        }
-    </select>
+    <!-- Gra -->
+    <div class="filter-group">
+        <label class="filter-label">Gra:</label>
+        <select name="game" class="filter-select" onchange="this.form.submit()">
+            <option value="">Wszystkie</option>
+            @foreach (var g in Model.Data.GameOptions)
+            {
+                <option value="@g" selected="@(Model.Data.Game == g)">
+                    @g
+                </option>
+            }
+        </select>
+    </div>
+
 </form>
+
 
 
 @{
