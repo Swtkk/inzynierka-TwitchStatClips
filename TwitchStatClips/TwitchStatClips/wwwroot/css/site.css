@@ -912,3 +912,50 @@ h1 {
         background: #1b1c2a;
         color: #fff;
     }
+/* ------------------------------- */
+/*  Dropdown w navbarze - Dark UI  */
+/* ------------------------------- */
+
+.navbar-nav .dropdown-menu {
+    background-color: #161821;
+    border: 1px solid #2b2e3c;
+    border-radius: 10px;
+    min-width: 200px;
+    padding: 0.4rem 0;
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+.navbar-nav .dropdown-item {
+    color: #e6e6e6;
+    padding: 0.55rem 1.2rem;
+    font-size: 1.05rem;
+}
+
+    .navbar-nav .dropdown-item:hover,
+    .navbar-nav .dropdown-item:focus {
+        background-color: #242736;
+        color: #ffffff;
+    }
+
+/* Otwieranie dropdowna przy hover */
+.navbar-nav .nav-tools:hover .dropdown-menu {
+    display: block;
+}
+
+/* Usuwa migotnięcie między hover */
+.nav-tools .dropdown-toggle {
+    cursor: pointer;
+}
+
+/* Delikatna animacja */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

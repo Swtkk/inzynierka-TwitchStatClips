@@ -1,0 +1,50 @@
+﻿@page
+@model DownloadClipModel
+@{
+    ViewData["Title"] = "Pobierz klip";
+}
+
+<h2>Pobierz klip z Twitch (przez Python/yt-dlp)</h2>
+
+<form method="post" class="mt-3">
+    <div class="mb-3">
+        <label asp-for="ClipUrl" class="form-label">Link do klipa</label>
+        <input asp-for="ClipUrl" class="form-control" placeholder="https://clips.twitch.tv/..." />
+        <span asp-validation-for="ClipUrl" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Pobierz (na serwer)</button>
+</form>
+
+@* 🔽 Sekcja sukcesu *@
+@if (Model.IsSuccess)
+{
+    <div class="alert alert-success mt-3">
+        <h4>✅ Pobrano pomyślnie! Kliknij, aby zapisać!</h4>
+
+        <p>@Model.StatusMessage</p>
+
+        @* KLUCZOWA ZMIANA: Link do metody OnGetFile, wymuszający pobranie *@
+        <a asp-page-handler="File"
+           asp-route-fileName="@Model.GeneratedFileName"
+           class="btn btn-success btn-lg mt-2">
+            Pobierz klip (@Model.GeneratedFileName)
+        </a>
+
+        <hr />
+        <p class="text-muted">Lokalizacja pliku na serwerze: <code>@Model.DownloadedFilePath</code></p>
+    </div>
+}
+
+@* 🔽 Sekcja błędów *@
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger mt-3">
+        <h4>🛑 Błąd Pobierania</h4>
+        <p>@Model.ErrorMessage</p>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -19,6 +19,7 @@
 
 	<ItemGroup>
 	  <Folder Include="img\" />
+	  <Folder Include="skryptyPython\clips\" />
 	</ItemGroup>
 
 </Project>
