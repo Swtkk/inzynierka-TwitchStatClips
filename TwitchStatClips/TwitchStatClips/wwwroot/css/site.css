@@ -45,7 +45,7 @@ main {
 }
 
 /* ===== Header / Footer ===== */
-header, .navbar, footer {
+ .navbar, footer {
     background: rgba(20,24,32,.7);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -1065,3 +1065,7 @@ h1 {
 }
 
 
+header {
+    position: relative;
+    z-index: 5000; /* coś większego niż reszta strony */
+}
