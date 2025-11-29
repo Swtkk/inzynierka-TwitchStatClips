@@ -574,7 +574,7 @@ namespace TwitchStatClips.TwitchService
             return data?.Data.FirstOrDefault();
         }
 
-        private async Task<TwitchAuthToken?> EnsureTokenAsync()
+        public async Task<TwitchAuthToken?> EnsureTokenAsync()
         {
             var token = GetToken();
 

@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="skryptyPython\clips\BigTemperedHeronShadyLulu-2EuAFaBg1dkvRSPR_20251128_234411.mp4" />
+    <None Remove="skryptyPython\clips\CourteousFurtiveDogCoolStoryBro-huEnu-MpX1_fzmcr_20251128_234359.mp4" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />

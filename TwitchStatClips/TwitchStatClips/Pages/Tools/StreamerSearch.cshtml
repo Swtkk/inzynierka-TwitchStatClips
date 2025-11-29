@@ -1,0 +1,131 @@
+﻿@page
+@model TwitchStatClips.Pages.Tools.StreamerSearchModel
+
+@{
+    ViewData["Title"] = "Wyszukaj streamera";
+}
+
+<h2 class="mt-4 mb-3">Wyszukaj streamera</h2>
+
+<div class="streamer-search-card">
+    <div class="mb-3 d-flex align-items-center search-top-row">
+        <input id="searchInput"
+               type="text"
+               class="form-control form-control-lg streamer-search-input"
+               placeholder="Wpisz minimum 3 litery nicku..." />
+
+        <button id="btnTop30" type="button" class="btn btn-primary btn-lg">
+            Pokaż top online
+        </button>
+    </div>
+
+    <div id="searchHint" class="text-muted small mb-2">
+        Zacznij pisać nick (min. 3 znaki), a pokażemy maks. 10 dopasowań.
+    </div>
+
+    <div id="searchResults" class="streamer-results-list">
+        <!-- tutaj JS wstawi wyniki -->
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const input = document.getElementById('searchInput');
+        const resultsDiv = document.getElementById('searchResults');
+        const btnTop30 = document.getElementById('btnTop30');
+
+        let lastTerm = "";
+        let debounceTimer = null;
+
+        input.addEventListener('input', function () {
+            const term = this.value.trim();
+
+            if (term.length < 3) {
+                resultsDiv.innerHTML = "";
+                lastTerm = "";
+                return;
+            }
+
+            lastTerm = term;
+
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function () {
+                fetchResults(term, 10);
+            }, 250);
+        });
+
+        btnTop30.addEventListener('click', function () {
+            const term = input.value.trim();
+            if (term.length < 3) {
+                alert("Wpisz minimum 3 znaki, żeby wyszukać streamerów.");
+                return;
+            }
+            fetchResults(term, 30);
+        });
+
+        function fetchResults(term, limit) {
+            fetch("?handler=Search&term=" + encodeURIComponent(term) + "&limit=" + limit)
+                .then(function (r) { return r.json(); })
+                .then(function (data) { renderResults(data); })
+                .catch(function (err) {
+                    console.error(err);
+                    resultsDiv.innerHTML =
+                        "<div class='text-danger'>Błąd podczas wyszukiwania.</div>";
+                });
+        }
+
+        function renderResults(items) {
+            if (!items || items.length === 0) {
+                resultsDiv.innerHTML =
+                    "<div class='text-muted'>Brak wyników dla podanej frazy.</div>";
+                return;
+            }
+
+            var html = "";
+
+            for (var i = 0; i < items.length; i++) {
+                var it = items[i];
+
+                var avatar = it.avatarUrl ||
+                    "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png";
+
+                var statsUrl = "/Tools/StreamerStats/" + encodeURIComponent(it.login);
+
+
+                html +=
+                    "<div class='streamer-result-item'>" +
+                        "<div class='d-flex align-items-center gap-3'>" +
+                            "<img src='" + avatar + "' class='streamer-avatar-lookup' alt='" +
+                                escapeHtml(it.displayName) + "' />" +
+                            "<div class='flex-grow-1'>" +
+                                "<div class='fw-semibold'>" + escapeHtml(it.displayName) + "</div>" +
+                                "<div class='text-muted small'>&#64;" + escapeHtml(it.login) + "</div>" +
+                                "<div class='text-muted small'>Średnia / aktualni widzowie: " +
+                                    it.viewerCount + "</div>" +
+                            "</div>" +
+                            "<div class='d-flex flex-column gap-1'>" +
+                                "<a href='" + statsUrl + "' class='btn btn-outline-light btn-sm'>" +
+                                    "Statystyki</a>" +
+                                "<a href='https://www.twitch.tv/" + encodeURIComponent(it.login) +
+                                   "' target='_blank' class='btn btn-outline-secondary btn-sm'>" +
+                                   "Twitch</a>" +
+                            "</div>" +
+                        "</div>" +
+                    "</div>";
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // prosta funkcja do escapowania tekstu (żeby nie psuć HTML)
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+}

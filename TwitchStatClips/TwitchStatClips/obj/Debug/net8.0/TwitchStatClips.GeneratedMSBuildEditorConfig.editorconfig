@@ -70,6 +70,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9vbHNcRmF2b3JpdGVDbGlwcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Tools/StreamerSearch.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9vbHNcU3RyZWFtZXJTZWFyY2guY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/marci/source/repos/TwitchStatClips/TwitchStatClips/Pages/Tools/StreamerStats.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9vbHNcU3RyZWFtZXJTdGF0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

@@ -915,43 +915,65 @@ h1 {
 /* ------------------------------- */
 /*  Dropdown w navbarze - Dark UI  */
 /* ------------------------------- */
+/* ------------------------------- */
+/*  Dropdown w navbarze - Dark UI  */
+/* ------------------------------- */
+/* KONTENER DROPDOWNA */
+/* =============================== */
+/*    DROPDOWN "NARZĘDZIA" NAVBAR  */
+/* =============================== */
 
-.navbar-nav .dropdown-menu {
-    background-color: #161821;
-    border: 1px solid #2b2e3c;
-    border-radius: 10px;
-    min-width: 200px;
-    padding: 0.4rem 0;
-    animation: fadeIn 0.15s ease-in-out;
+.nav-item.nav-tools {
+    position: relative;
 }
 
-.navbar-nav .dropdown-item {
-    color: #e6e6e6;
-    padding: 0.55rem 1.2rem;
-    font-size: 1.05rem;
+/* MENU DROPDOWNA POD "NARZĘDZIA" */
+.navbar-nav .nav-tools .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%; /* tuż pod linkiem, bez przerwy */
+    left: 0;
+    /* JAŚNIEJSZE, WYRAŹNE TŁO */
+    background-color: #181b2e;
+    border: 1px solid #5b5f80;
+    border-radius: 14px;
+    min-width: 240px;
+    padding: 0.6rem 0;
+    margin: 0; /* ważne: ZERO gapu! */
+
+    list-style: none;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+    z-index: 3000;
+    animation: dropdownFade 0.15s ease-out;
 }
 
-    .navbar-nav .dropdown-item:hover,
-    .navbar-nav .dropdown-item:focus {
-        background-color: #242736;
-        color: #ffffff;
-    }
-
-/* Otwieranie dropdowna przy hover */
 .navbar-nav .nav-tools:hover .dropdown-menu {
     display: block;
 }
 
-/* Usuwa migotnięcie między hover */
-.nav-tools .dropdown-toggle {
+.navbar-nav .nav-tools .dropdown-item {
+    display: block;
+    padding: 0.65rem 1.3rem;
+    font-size: 1.05rem;
+    color: #f5f5ff;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .navbar-nav .nav-tools .dropdown-item:hover,
+    .navbar-nav .nav-tools .dropdown-item:focus {
+        background-color: #262a44;
+        color: #ffffff;
+    }
+
+.nav-tools .nav-link {
     cursor: pointer;
 }
 
-/* Delikatna animacja */
-@keyframes fadeIn {
+@keyframes dropdownFade {
     from {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(4px);
     }
 
     to {
@@ -959,3 +981,87 @@ h1 {
         transform: translateY(0);
     }
 }
+.navbar-dropdown {
+    background-color: #111322 !important;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 6000 !important;
+}
+
+
+/* Karta wyszukiwarki streamerów */
+.streamer-search-card {
+    background: linear-gradient(145deg, #121321, #17182a);
+    border-radius: 16px;
+    padding: 1.25rem 1.75rem;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    max-width: 1100px; /* było 900px – teraz szerzej */
+    margin: 0 auto; /* centrowanie w .container */
+}
+    .streamer-search-card .search-top-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem; /* trochę odstępu */
+    }
+/* Input */
+.streamer-search-input {
+    background-color: #121321;
+    border: 1px solid #3c3f5a;
+    color: #f5f5ff;
+}
+
+    .streamer-search-input:focus {
+        background-color: #141525;
+        border-color: #8758ff;
+        box-shadow: 0 0 0 0.15rem rgba(135, 88, 255, 0.35);
+        color: #ffffff;
+    }
+
+/* Lista wyników */
+.streamer-results-list {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.streamer-result-item {
+    background-color: #111322;
+    border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #272a43;
+}
+
+/* Avatar */
+.streamer-avatar-lookup {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 2px solid #8758ff;
+}
+.streamer-search-card .search-top-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* trochę odstępu */
+}
+
+    /* Input rozciąga się maksymalnie */
+    .streamer-search-card .search-top-row #searchInput {
+        flex: 1 1 auto;
+    }
+
+    /* Przycisk ma swoją minimalną szerokość i nie jest ściśnięty */
+    .streamer-search-card .search-top-row #btnTop30 {
+        flex: 0 0 170px; /* możesz podbić do 190–200 jeśli chcesz */
+        text-align: center;
+    }
+
+.dropdown-menu {
+    position: absolute;
+    z-index: 99999 !important;
+    background-color: #111322; /* w 100% nieprzezroczyste tło */
+}
+
+

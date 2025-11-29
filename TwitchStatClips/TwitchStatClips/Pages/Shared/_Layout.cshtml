@@ -59,21 +59,10 @@
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item"><a class="nav-link fs-5" asp-page="/Index">Strona Główna</a></li>
                         <li class="nav-item"><a class="nav-link fs-5" asp-page="/Privacy">Privacy</a></li>
-                        <li class="nav-item dropdown nav-tools">
-                            <a class="nav-link fs-5 dropdown-toggle"
-                               href="#"
-                               id="toolsDropdown"
-                               role="button"
-                               data-bs-toggle="dropdown"
-                               aria-expanded="false">
-                                Narzędzia
-                            </a>
+                        
 
-                            <ul class="dropdown-menu shadow-lg" aria-labelledby="toolsDropdown">
-                                <li><a class="dropdown-item" asp-page="/Tools/UserLookup">Konwerter</a></li>
-                                <li><a class="dropdown-item" asp-page="/Tools/DownloadClip">Pobierz klip</a></li>
-                            </ul>
-                        </li>
+
+
                         @* @if (isUserLoggedIn)
                         {
                             <li class="nav-item"><a class="nav-link fs-5" asp-page="/Tools/FavoriteClips">Ulubione klipy</a></li>
@@ -86,6 +75,22 @@
                             <a class="nav-link fs-5" asp-page="/Tools/StreamerStatsAll">
                                 Statystyki
                             </a>
+                        </li>
+                        <li class="nav-item nav-tools position-relative">
+                            <a class="nav-link fs-5 "
+                               href="#"
+                               id="toolsDropdown"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                Narzędzia
+                            </a>
+
+                            <ul class="dropdown-menu navbar-dropdown shadow-lg" aria-labelledby="toolsDropdown">
+                                <li><a class="dropdown-item" asp-page="/Tools/UserLookup">Konwerter</a></li>
+                                <li><a class="dropdown-item" asp-page="/Tools/DownloadClip">Pobierz klip</a></li>
+                                <li><a class="dropdown-item" asp-page="/Tools/StreamerSearch">Wyszukaj streamera</a></li>
+                            </ul>
                         </li>
                     </ul>
 
